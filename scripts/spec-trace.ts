@@ -99,7 +99,7 @@ function getMappingLines(traceabilityText: string): string[] {
 }
 
 function hasTraceabilityTableHeader(traceabilityText: string): boolean {
-  return /^\|\s*AC\s*\|\s*Critério\s*\|\s*Módulo\(s\)\s*\|\s*Teste\s*\|/im.test(
+  return /^\|\s*AC\s*\|\s*Critério\s*\|\s*Módulo\(s\)\s*\|\s*(Teste|Caso\(s\)\s+de\s+teste|Casos\s+de\s+teste)\s*\|/im.test(
     traceabilityText,
   );
 }
