@@ -1,11 +1,29 @@
 [
   {
+    "id": "feature-auth-v1.1.2",
+    "path": "specs/features/auth/spec-v1.1.2.md",
+    "type": "feature",
+    "feature": "auth",
+    "version": "1.1.2",
+    "status": "active",
+    "dependsOn": ["adr-001-use-firebase"]
+  },
+  {
+    "id": "feature-auth-v1.1.1",
+    "path": "specs/features/auth/spec-v1.1.1.md",
+    "type": "feature",
+    "feature": "auth",
+    "version": "1.1.1",
+    "status": "superseded",
+    "dependsOn": ["adr-001-use-firebase"]
+  },
+  {
     "id": "feature-auth-v1.1.0",
     "path": "specs/features/auth/spec-v1.1.0.md",
     "type": "feature",
     "feature": "auth",
     "version": "1.1.0",
-    "status": "active",
+    "status": "superseded",
     "dependsOn": ["adr-001-use-firebase"]
   },
   {

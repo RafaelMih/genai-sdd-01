@@ -20,7 +20,7 @@ export function LoginForm() {
     setAuthError(null);
     try {
       await signIn(data.email, data.password);
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? "";
       setAuthError(getAuthErrorMessage(code));

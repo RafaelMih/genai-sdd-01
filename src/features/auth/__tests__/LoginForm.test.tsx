@@ -45,13 +45,43 @@ describe("LoginForm — Firebase error messages", () => {
     vi.restoreAllMocks();
   });
 
-  // AC5
-  it("wrong credentials show E-mail ou senha incorretos", async () => {
+  // AC5 — wrong-password
+  it("wrong-password shows E-mail ou senha incorretos", async () => {
     vi.spyOn(authService, "signIn").mockRejectedValueOnce({
       code: "auth/wrong-password",
     });
     renderForm();
     fillForm("user@test.com", "wrongpass");
+    submit();
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "E-mail ou senha incorretos."
+      )
+    );
+  });
+
+  // AC5 — user-not-found
+  it("user-not-found shows E-mail ou senha incorretos", async () => {
+    vi.spyOn(authService, "signIn").mockRejectedValueOnce({
+      code: "auth/user-not-found",
+    });
+    renderForm();
+    fillForm("unknown@test.com", "password123");
+    submit();
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "E-mail ou senha incorretos."
+      )
+    );
+  });
+
+  // AC5 — invalid-credential
+  it("invalid-credential shows E-mail ou senha incorretos", async () => {
+    vi.spyOn(authService, "signIn").mockRejectedValueOnce({
+      code: "auth/invalid-credential",
+    });
+    renderForm();
+    fillForm("user@test.com", "password123");
     submit();
     await waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent(
@@ -84,9 +114,7 @@ describe("LoginForm — Firebase error messages", () => {
     fillForm("user@test.com", "password123");
     submit();
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "Muitas tentativas."
-      )
+      expect(screen.getByRole("alert")).toHaveTextContent("Muitas tentativas.")
     );
   });
 
@@ -99,9 +127,7 @@ describe("LoginForm — Firebase error messages", () => {
     fillForm("user@test.com", "password123");
     submit();
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "Falha na conexão."
-      )
+      expect(screen.getByRole("alert")).toHaveTextContent("Falha na conexão.")
     );
   });
 
@@ -120,8 +146,21 @@ describe("LoginForm — Firebase error messages", () => {
     );
   });
 
-  // AC10
-  it("successful login redirects to /dashboard", async () => {
+  // auth/invalid-email fallback (client-side bypass via DevTools)
+  it("auth/invalid-email fallback shows E-mail inválido", async () => {
+    vi.spyOn(authService, "signIn").mockRejectedValueOnce({
+      code: "auth/invalid-email",
+    });
+    renderForm();
+    fillForm("user@test.com", "password123");
+    submit();
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("E-mail inválido")
+    );
+  });
+
+  // AC10 — redirect uses replace semantics
+  it("successful login navigates to /dashboard with replace", async () => {
     vi.spyOn(authService, "signIn").mockResolvedValueOnce(
       {} as UserCredential
     );
@@ -129,11 +168,11 @@ describe("LoginForm — Firebase error messages", () => {
     fillForm("user@test.com", "password123");
     submit();
     await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith("/dashboard")
+      expect(mockNavigate).toHaveBeenCalledWith("/dashboard", { replace: true })
     );
   });
 
-  // AC11
+  // AC11 entry — button disabled and shows loading label during request
   it("submit button disabled and shows loading text while request is in progress", async () => {
     let resolveSignIn!: (value: UserCredential) => void;
     vi.spyOn(authService, "signIn").mockReturnValueOnce(
@@ -146,14 +185,25 @@ describe("LoginForm — Firebase error messages", () => {
     submit();
 
     await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: /entrando/i })
-      ).toBeDisabled()
+      expect(screen.getByRole("button", { name: /entrando/i })).toBeDisabled()
     );
 
-    // Resolve so React can clean up without act warnings
     await act(async () => {
       resolveSignIn({} as UserCredential);
     });
+  });
+
+  // AC11 exit — button re-enabled with original label after Firebase error
+  it("submit button re-enabled with label Entrar after Firebase error", async () => {
+    vi.spyOn(authService, "signIn").mockRejectedValueOnce({
+      code: "auth/wrong-password",
+    });
+    renderForm();
+    fillForm("user@test.com", "wrongpass");
+    submit();
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /^entrar$/i })).not.toBeDisabled()
+    );
   });
 });

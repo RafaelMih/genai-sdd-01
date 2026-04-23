@@ -2,12 +2,19 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root = path.resolve("specs/features");
+const lintAllVersions = process.env.SPEC_LINT_ALL === "1";
 
 type Severity = "BLOCKER" | "WARN";
 
 type LintIssue = {
   severity: Severity;
   message: string;
+};
+
+type SpecFileInfo = {
+  file: string;
+  feature: string;
+  version: [number, number, number];
 };
 
 const requiredTopLevelPatterns = [
@@ -29,23 +36,39 @@ const requiredTopLevelPatterns = [
 ];
 
 const sectionAliases: Record<string, string[]> = {
-  objective: ["objective", "goal", "goals"],
-  scope: ["scope", "in scope", "in-scope"],
+  objective: ["objective", "goal", "goals", "objetivo"],
+  scope: ["scope", "in scope", "in-scope", "escopo"],
   "out of scope": [
     "out of scope",
     "out-of-scope",
     "excluded",
     "non-goals",
     "non goals",
+    "fora do escopo",
   ],
   "acceptance criteria": [
     "acceptance criteria",
     "acceptance criterion",
     "acceptance",
     "criteria",
+    "critérios de aceitação",
   ],
-  dependencies: ["dependencies", "depends on", "dependency"],
-  tests: ["tests", "test strategy", "test cases", "testing"],
+  dependencies: ["dependencies", "depends on", "dependency", "dependências"],
+  tests: ["tests", "test strategy", "test cases", "testing", "testes"],
+  "redirect contract": [
+    "redirect contract",
+    "redirects",
+    "navigation contract",
+    "contrato de redirect",
+    "contrato de redirecionamento",
+  ],
+  "auth contract": [
+    "auth contract",
+    "authentication contract",
+    "authorization contract",
+    "contrato de autenticação",
+    "contrato de auth",
+  ],
 };
 
 const vagueTermsWarn = [
@@ -56,7 +79,6 @@ const vagueTermsWarn = [
   "amigável",
   "eficiente",
   "otimizado",
-  "friendly",
   "simple",
   "easy",
   "seamless",
@@ -64,23 +86,31 @@ const vagueTermsWarn = [
   "user-friendly",
 ];
 
-const unresolvedMarkersWarn = [
-  "todo",
+const unresolvedMarkersBlocker = [
   "tbd",
   "to decide",
   "undecided",
-  "open question",
-  "open questions",
   "decide later",
   "placeholder",
 ];
 
+const unresolvedMarkersWarn = [
+  "todo",
+  "open question",
+  "open questions",
+  "questão em aberto",
+  "questões em aberto",
+];
+
 const subjectivePatternsWarn = [
-  /friendly auth error/i,
   /good user experience/i,
   /better performance/i,
   /fast login/i,
   /clear error/i,
+  /boa experiência/i,
+  /melhor performance/i,
+  /login rápido/i,
+  /erro claro/i,
 ];
 
 function escapeRegExp(value: string): string {
@@ -95,20 +125,100 @@ function normalizeSectionName(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function walk(dir: string): string[] {
-  const out: string[] = [];
+function parseVersionFromPath(file: string): [number, number, number] | null {
+  const normalized = file.replace(/\\/g, "/");
+
+  const nested = normalized.match(/\/v(\d+)\.(\d+)\.(\d+)\/spec\.md$/i);
+  if (nested) {
+    return [Number(nested[1]), Number(nested[2]), Number(nested[3])];
+  }
+
+  const flat = normalized.match(/spec-v(\d+)\.(\d+)\.(\d+)\.md$/i);
+  if (flat) {
+    return [Number(flat[1]), Number(flat[2]), Number(flat[3])];
+  }
+
+  return null;
+}
+
+function extractFeatureFromPath(file: string): string | null {
+  const normalized = file.replace(/\\/g, "/");
+
+  const nested = normalized.match(
+    /specs\/features\/([^/]+)\/v\d+\.\d+\.\d+\/spec\.md$/i,
+  );
+  if (nested) {
+    return nested[1];
+  }
+
+  const flat = normalized.match(
+    /specs\/features\/([^/]+)\/spec-v\d+\.\d+\.\d+\.md$/i,
+  );
+  if (flat) {
+    return flat[1];
+  }
+
+  return null;
+}
+
+function compareVersions(
+  a: [number, number, number],
+  b: [number, number, number],
+): number {
+  if (a[0] !== b[0]) return a[0] - b[0];
+  if (a[1] !== b[1]) return a[1] - b[1];
+  return a[2] - b[2];
+}
+
+function collectSpecFiles(dir: string): SpecFileInfo[] {
+  const out: SpecFileInfo[] = [];
   if (!fs.existsSync(dir)) return out;
 
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
+    const normalizedFull = full.replace(/\\/g, "/");
+
     if (entry.isDirectory()) {
-      out.push(...walk(full));
-    } else if (/spec-v\d+\.\d+\.\d+\.md$/i.test(entry.name)) {
-      out.push(full);
+      out.push(...collectSpecFiles(full));
+      continue;
     }
+
+    const isVersionedSpecFile = /spec-v\d+\.\d+\.\d+\.md$/i.test(entry.name);
+    const isNestedVersionSpec = /\/v\d+\.\d+\.\d+\/spec\.md$/i.test(
+      normalizedFull,
+    );
+
+    if (!isVersionedSpecFile && !isNestedVersionSpec) continue;
+
+    const feature = extractFeatureFromPath(full);
+    const version = parseVersionFromPath(full);
+
+    if (!feature || !version) continue;
+
+    out.push({ file: full, feature, version });
   }
 
   return out;
+}
+
+function selectFilesToLint(files: SpecFileInfo[]): string[] {
+  if (lintAllVersions) {
+    return files.map((item) => item.file).sort();
+  }
+
+  const latestByFeature = new Map<string, SpecFileInfo>();
+
+  for (const item of files) {
+    const existing = latestByFeature.get(item.feature);
+
+    if (!existing || compareVersions(item.version, existing.version) > 0) {
+      latestByFeature.set(item.feature, item);
+    }
+  }
+
+  return [...latestByFeature.values()]
+    .sort((a, b) => a.feature.localeCompare(b.feature))
+    .map((item) => item.file);
 }
 
 function canonicalizeSectionName(raw: string): string {
@@ -154,6 +264,10 @@ function pushIssue(
   issues.push({ severity, message });
 }
 
+function hasAny(text: string, patterns: RegExp[]): boolean {
+  return patterns.some((pattern) => pattern.test(text));
+}
+
 function lintTopLevel(text: string, issues: LintIssue[]): void {
   for (const rule of requiredTopLevelPatterns) {
     if (!rule.pattern.test(text)) {
@@ -170,7 +284,16 @@ function lintRequiredSections(
   sections: Record<string, string>,
   issues: LintIssue[],
 ): void {
-  for (const canonicalName of Object.keys(sectionAliases)) {
+  const alwaysRequired = [
+    "objective",
+    "scope",
+    "out of scope",
+    "acceptance criteria",
+    "dependencies",
+    "tests",
+  ];
+
+  for (const canonicalName of alwaysRequired) {
     if (!sections[canonicalName] || !sections[canonicalName].trim()) {
       pushIssue(
         issues,
@@ -189,10 +312,27 @@ function lintVagueLanguage(text: string, issues: LintIssue[]): void {
     }
   }
 
-  for (const marker of unresolvedMarkersWarn) {
+  const hasResolvedOpenQuestions =
+    /##\s+open questions\s*\n+\s*(none|nenhuma)\.?\s*$/im.test(text) ||
+    /##\s+questões em aberto\s*\n+\s*(none|nenhuma)\.?\s*$/im.test(text);
+
+  for (const marker of unresolvedMarkersBlocker) {
     const re = new RegExp(`\\b${escapeRegExp(marker)}\\b`, "i");
     if (re.test(text)) {
-      pushIssue(issues, "WARN", `Unresolved marker found: "${marker}"`);
+      pushIssue(issues, "BLOCKER", `Unresolved marker found: "${marker}"`);
+    }
+  }
+
+  if (!hasResolvedOpenQuestions) {
+    for (const marker of unresolvedMarkersWarn) {
+      const re = new RegExp(`\\b${escapeRegExp(marker)}\\b`, "i");
+      if (re.test(text)) {
+        pushIssue(
+          issues,
+          "WARN",
+          `Potential unresolved marker found: "${marker}"`,
+        );
+      }
     }
   }
 
@@ -207,6 +347,33 @@ function lintVagueLanguage(text: string, issues: LintIssue[]): void {
   }
 }
 
+function extractAcceptanceCriteriaItems(acText: string): string[] {
+  const lines = acText.split("\n");
+  const items: string[] = [];
+  let current = "";
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    if (/^(- |\* )?AC[-\s]?\d+[:.)]/i.test(line)) {
+      if (current) items.push(current.trim());
+      current = line.replace(/^(- |\* )/, "");
+      continue;
+    }
+
+    if (current) {
+      current += ` ${line}`;
+    }
+  }
+
+  if (current) {
+    items.push(current.trim());
+  }
+
+  return items;
+}
+
 function lintAcceptanceCriteria(
   acText: string | undefined,
   issues: LintIssue[],
@@ -216,12 +383,9 @@ function lintAcceptanceCriteria(
     return;
   }
 
-  const lines = acText
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => /^(- |\* )|^AC-\d+:/i.test(line));
+  const items = extractAcceptanceCriteriaItems(acText);
 
-  if (lines.length === 0) {
+  if (items.length === 0) {
     pushIssue(
       issues,
       "BLOCKER",
@@ -230,15 +394,15 @@ function lintAcceptanceCriteria(
     return;
   }
 
-  lines.forEach((line, index) => {
-    const item = line.replace(/^(- |\* )/, "").trim();
-
+  items.forEach((item, index) => {
     if (item.length < 12) {
       pushIssue(issues, "WARN", `AC-${index + 1}: too short to be testable.`);
     }
 
     if (
-      /\b(friendly|clear|simple|easy|intuitive|fast|quick|good)\b/i.test(item)
+      /\b(friendly|clear|simple|easy|intuitive|fast|quick|good|amigável|claro|simples|fácil|intuitivo|rápido|bom)\b/i.test(
+        item,
+      )
     ) {
       pushIssue(
         issues,
@@ -248,7 +412,7 @@ function lintAcceptanceCriteria(
     }
 
     if (
-      !/\b(must|shall|should|shows|redirects|returns|blocks|displays|creates|rejects|allows|prevents|disables)\b/i.test(
+      !/\b(must|shall|shows|show|redirects|redirect|returns|return|blocks|block|displays|display|creates|create|rejects|reject|allows|allow|prevents|prevent|disables|disable|deve|exibe|exibir|redireciona|redirecionar|retorna|retornar|bloqueia|bloquear|cria|criar|rejeita|rejeitar|permite|permitir|previne|prevenir|desabilita|desabilitar|navigates|navigate|visible|opens|open)\b/i.test(
         item,
       )
     ) {
@@ -259,11 +423,11 @@ function lintAcceptanceCriteria(
       );
     }
 
-    if (!/[.?!]$/.test(item)) {
+    if (/\bshould\b/i.test(item)) {
       pushIssue(
         issues,
-        "WARN",
-        `AC-${index + 1}: should end with punctuation for consistency.`,
+        "BLOCKER",
+        `AC-${index + 1}: uses "should", which is not strict enough: "${item}"`,
       );
     }
   });
@@ -294,49 +458,196 @@ function lintAuthSpec(
   sections: Record<string, string>,
   issues: LintIssue[],
 ): void {
-  const fullText = text.toLowerCase();
+  const fullText = text;
+  const fullTextLower = text.toLowerCase();
   const acText = sections["acceptance criteria"] ?? "";
+  const redirectText =
+    sections["redirect contract"] ??
+    `${sections["acceptance criteria"] ?? ""}\n${text}`;
 
-  const hasRedirectPath =
-    /redirect(path)?\s*:\s*["'`]?\/[a-z0-9/_-]+["'`]?/i.test(text) ||
-    /redirects?\s+to\s+["'`]?\/[a-z0-9/_-]+["'`]?/i.test(text);
+  const hasExplicitRedirectDestination = hasAny(redirectText, [
+    /redirect(path)?\s*:\s*["'`]?\/[a-z0-9/_-]+["'`]?/i,
+    /redirects?\s+to\s+["'`]?\/[a-z0-9/_-]+["'`]?/i,
+    /redireciona(?:r)?\s+para\s+["'`]?\/[a-z0-9/_-]+["'`]?/i,
+    /destino\s+do\s+redirect\s*:\s*["'`]?\/[a-z0-9/_-]+["'`]?/i,
 
-  const hasProvisioning =
-    /sign-up|signup|pre-seeded|pre seeded|admin-created|admin created|account provisioning|account creation|accounts are created/i.test(
-      text,
-    );
+    /path after successful sign-?in\s*:\s*["'`]?\/[a-z0-9/_-]+["'`]?/i,
+    /path for already-authenticated users.*:\s*["'`]?\/[a-z0-9/_-]+["'`]?/i,
 
-  const hasErrorContract =
-    /auth\/[a-z-]+|error code|error mapping|invalid email or password|network-request-failed|wrong-password|user-not-found|friendly auth error/i.test(
-      text,
-    );
+    /\|\s*successful sign-?in\s*\|[^|\n]*\|\s*\/[a-z0-9/_-]+\s*\|/i,
+    /\|\s*user already authenticated\s*\|[^|\n]*\|\s*\/[a-z0-9/_-]+\s*\|/i,
+    /\|\s*login bem-?sucedido\s*\|[^|\n]*\|\s*\/[a-z0-9/_-]+\s*\|/i,
+    /\|\s*usuário já autenticado\s*\|[^|\n]*\|\s*\/[a-z0-9/_-]+\s*\|/i,
+  ]);
 
-  const hasAlreadyAuthenticatedContract =
-    /already-authenticated|already authenticated|if authenticated user visits \/login|signed-in user navigates to \/login|redirect immediately/i.test(
-      text,
-    );
+  const hasPostLoginRedirectTrigger = hasAny(redirectText, [
+    /after login/i,
+    /on successful sign-?in/i,
+    /successful sign-?in/i,
+    /upon successful authentication/i,
+    /após login/i,
+    /após autenticação/i,
+    /em caso de login bem-sucedido/i,
+    /no sucesso do login/i,
 
-  const hasLoadingState =
-    /loading state|pending state|spinner|button disabled|disable submit during request|submitting/i.test(
-      text,
-    );
+    /\|\s*successful sign-?in\s*\|/i,
+    /\|\s*login bem-?sucedido\s*\|/i,
+  ]);
 
-  const mentionsSecurityRules = /security-rules|security rules/i.test(text);
-  const explainsFirestoreInteraction =
-    /firestore|document creation|users\/\{uid\}|users\/\{uid\}|create.*user document|post-login write|post login write/i.test(
-      text,
-    );
+  const hasAlreadyAuthenticatedBehavior = hasAny(fullText, [
+    /already-authenticated/i,
+    /already authenticated/i,
+    /if authenticated user visits \/login/i,
+    /signed-in user navigates to \/login/i,
+    /usuário autenticado.*\/login/i,
+    /se o usuário já estiver autenticado/i,
+    /ao acessar \/login já autenticado/i,
 
-  const hasOpenRedirectDecision =
-    /dashboard\s+path\s+is\s+undecided|\/dashboard\s+vs\s+\/app|open question/i.test(
-      fullText,
-    );
+    /\|\s*user already authenticated\s*\|/i,
+    /\|\s*usuário já autenticado\s*\|/i,
+  ]);
 
-  if (!hasRedirectPath) {
+  const hasRedirectNavigationMode = hasAny(redirectText, [
+    /\breplace:\s*true\b/i,
+    /\bpush\b/i,
+    /\breplace\b/i,
+    /navigation\s+mode\s*:\s*(push|replace)/i,
+    /tipo\s+de\s+navegação\s*:\s*(push|replace)/i,
+    /usar\s+replace/i,
+    /usar\s+push/i,
+
+    /\|\s*successful sign-?in\s*\|[^|\n]*\|[^|\n]*\|\s*(push|replace)\s*\|/i,
+    /\|\s*user already authenticated\s*\|[^|\n]*\|[^|\n]*\|\s*(push|replace)\s*\|/i,
+    /\|\s*login bem-?sucedido\s*\|[^|\n]*\|[^|\n]*\|\s*(push|replace)\s*\|/i,
+    /\|\s*usuário já autenticado\s*\|[^|\n]*\|[^|\n]*\|\s*(push|replace)\s*\|/i,
+  ]);
+
+  const hasProvisioning = hasAny(fullText, [
+    /sign-up/i,
+    /signup/i,
+    /pre-seeded/i,
+    /pre seeded/i,
+    /admin-created/i,
+    /admin created/i,
+    /account provisioning/i,
+    /account creation/i,
+    /accounts are created/i,
+    /cadastro/i,
+    /provisionamento/i,
+    /conta.*criada/i,
+    /contas são criadas/i,
+  ]);
+
+  const hasErrorContract = hasAny(fullText, [
+    /auth\/[a-z-]+/i,
+    /error code/i,
+    /error mapping/i,
+    /invalid email or password/i,
+    /network-request-failed/i,
+    /wrong-password/i,
+    /user-not-found/i,
+    /código de erro/i,
+    /mapeamento de erro/i,
+    /email ou senha inválidos/i,
+    /erro de autenticação/i,
+    /mensagem de erro/i,
+  ]);
+
+  const hasLoadingState = hasAny(fullText, [
+    /loading state/i,
+    /pending state/i,
+    /spinner/i,
+    /button disabled/i,
+    /disable submit during request/i,
+    /submitting/i,
+    /estado de carregamento/i,
+    /estado pendente/i,
+    /botão desabilitado/i,
+    /desabilita.*submit/i,
+    /enviando/i,
+    /loading indicator/i,
+    /indicador de carregamento/i,
+  ]);
+
+  const mentionsSecurityRules = hasAny(fullText, [
+    /security-rules/i,
+    /security rules/i,
+    /regras de segurança/i,
+  ]);
+
+  const explainsFirestoreInteraction = hasAny(fullText, [
+    /firestore/i,
+    /document creation/i,
+    /users\/\{uid\}/i,
+    /create.*user document/i,
+    /post-login write/i,
+    /post login write/i,
+    /criação de documento/i,
+    /documento do usuário/i,
+    /escrita pós-login/i,
+  ]);
+
+  const hasExplicitRedirectUndecided = hasAny(fullTextLower, [
+    /dashboard\s+path\s+is\s+undecided/i,
+    /\/dashboard\s+vs\s+\/app/i,
+    /redirect\s+path\s+undecided/i,
+    /destino\s+do\s+redirect\s+indefinido/i,
+    /redirect\s+entre\s+\/dashboard\s+e\s+\/app/i,
+    /redirecionamento\s+ainda\s+não\s+decidido/i,
+  ]);
+
+  const mentionsRedirect = hasAny(fullText, [
+    /\bredirect\b/i,
+    /\bredirecion/i,
+    /\/login/i,
+    /\/dashboard/i,
+  ]);
+
+  if (hasExplicitRedirectUndecided) {
     pushIssue(
       issues,
       "BLOCKER",
-      "[auth] Missing explicit redirect path contract.",
+      "[auth] Contains unresolved redirect path decision.",
+    );
+  }
+
+  if (mentionsRedirect && !sections["redirect contract"]) {
+    pushIssue(
+      issues,
+      "WARN",
+      '[auth] Redirect behavior exists without a dedicated "## redirect contract" section.',
+    );
+  }
+
+  if (!hasExplicitRedirectDestination) {
+    pushIssue(
+      issues,
+      "BLOCKER",
+      "[auth] Missing explicit redirect destination path.",
+    );
+  }
+
+  if (!hasPostLoginRedirectTrigger) {
+    pushIssue(
+      issues,
+      "BLOCKER",
+      "[auth] Missing explicit post-login redirect trigger.",
+    );
+  }
+
+  if (!hasAlreadyAuthenticatedBehavior) {
+    pushIssue(
+      issues,
+      "BLOCKER",
+      "[auth] Missing behavior for already-authenticated users visiting /login.",
+    );
+  }
+
+  if (!hasRedirectNavigationMode) {
+    pushIssue(
+      issues,
+      "BLOCKER",
+      "[auth] Missing redirect navigation semantics (push vs replace).",
     );
   }
 
@@ -356,14 +667,6 @@ function lintAuthSpec(
     );
   }
 
-  if (!hasAlreadyAuthenticatedContract) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      "[auth] Missing behavior for already-authenticated users visiting /login.",
-    );
-  }
-
   if (!hasLoadingState) {
     pushIssue(
       issues,
@@ -380,22 +683,16 @@ function lintAuthSpec(
     );
   }
 
-  if (hasOpenRedirectDecision) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      "[auth] Contains unresolved redirect path decision.",
-    );
-  }
-
   if (
-    /friendly auth error/i.test(acText) &&
-    !/invalid email or password|mapped error|error code/i.test(acText)
+    /friendly auth error|erro amigável/i.test(acText) &&
+    !/invalid email or password|mapped error|error code|email ou senha inválidos|código de erro|mapeamento de erro/i.test(
+      acText,
+    )
   ) {
     pushIssue(
       issues,
       "BLOCKER",
-      '[auth] Acceptance criteria mention "friendly auth error" without a concrete message or mapping.',
+      "[auth] Acceptance criteria mention friendly auth error without concrete message or mapping.",
     );
   }
 }
@@ -416,7 +713,8 @@ function lintFile(file: string): LintIssue[] {
     /[\\/]auth[\\/]/i.test(file) ||
     /\bfirebase auth\b/i.test(text) ||
     /\blogin\b/i.test(text) ||
-    /\bauthentication\b/i.test(text);
+    /\bauthentication\b/i.test(text) ||
+    /\bautenticação\b/i.test(text);
 
   if (isAuthLike) {
     lintAuthSpec(text, sections, issues);
@@ -425,11 +723,13 @@ function lintFile(file: string): LintIssue[] {
   return issues;
 }
 
-const files = walk(root);
+const specFiles = collectSpecFiles(root);
+const filesToLint = selectFilesToLint(specFiles);
+
 let hasBlocker = false;
 let hasWarn = false;
 
-for (const file of files) {
+for (const file of filesToLint) {
   const issues = lintFile(file);
 
   if (issues.length === 0) continue;
