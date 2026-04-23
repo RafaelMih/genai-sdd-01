@@ -15,7 +15,7 @@
     "spec:check": "npm run spec:lint && npm run spec:status",
     "precommit:spec": "tsx scripts/precommit-spec.ts",
     "mcp:spec-rag": "tsx mcp/spec-rag-server.ts",
-    "test:rules": "firebase emulators:exec --only firestore \"vitest run tests/firestore.rules.test.ts\""
+    "test:rules": "firebase emulators:exec --only firestore \"vitest run 'tests/**/*.rules.test.ts'\""
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
