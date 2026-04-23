@@ -50,8 +50,5 @@ jobs:
       - name: Run tests
         run: npm test -- --run
 
-      - name: List test files
-        run: find . -type f | grep -E "firestore|rules|test"
-
       - name: Firestore rules tests
         run: npm run test:rules
