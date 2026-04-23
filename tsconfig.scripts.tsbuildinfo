@@ -1,0 +1,1 @@
+{"root":["./scripts/create-feature.ts","./scripts/precommit-spec.ts","./scripts/spec-lint.ts","./scripts/spec-status.ts","./scripts/spec-trace.ts"],"version":"5.9.3"}
