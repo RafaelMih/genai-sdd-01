@@ -47,8 +47,8 @@ jobs:
       - name: Validate traceability
         run: npm run spec:trace
 
-      - name: Run tests
-        run: npm test -- --run
+      - name: Run unit tests
+        run: npx vitest run --exclude 'tests/firestore.rules.test.ts'
 
       - name: Firestore rules tests
         run: npm run test:rules

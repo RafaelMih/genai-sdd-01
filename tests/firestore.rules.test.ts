@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
 
 // Matches emulators.firestore.port in firebase.json
-const FIRESTORE_PORT = 8889;
+const FIRESTORE_PORT = 8080;
 const PROJECT_ID = "demo-genai-sdd";
 
 let testEnv: RulesTestEnvironment;
@@ -75,22 +75,18 @@ describe("create — users/{userId}", () => {
   it("owner can create their own document", async () => {
     const alice = testEnv.authenticatedContext("alice");
     await assertSucceeds(
-      setDoc(doc(alice.firestore(), "users/alice"), userDoc)
+      setDoc(doc(alice.firestore(), "users/alice"), userDoc),
     );
   });
 
   it("authenticated user cannot create a document for another user", async () => {
     const alice = testEnv.authenticatedContext("alice");
-    await assertFails(
-      setDoc(doc(alice.firestore(), "users/bob"), userDoc)
-    );
+    await assertFails(setDoc(doc(alice.firestore(), "users/bob"), userDoc));
   });
 
   it("unauthenticated user cannot create any document", async () => {
     const unauth = testEnv.unauthenticatedContext();
-    await assertFails(
-      setDoc(doc(unauth.firestore(), "users/alice"), userDoc)
-    );
+    await assertFails(setDoc(doc(unauth.firestore(), "users/alice"), userDoc));
   });
 });
 
@@ -110,7 +106,7 @@ describe("update — users/{userId}", () => {
       updateDoc(doc(alice.firestore(), "users/alice"), {
         displayName: "Alice Updated",
         updatedAt: new Date().toISOString(),
-      })
+      }),
     );
   });
 
@@ -119,7 +115,7 @@ describe("update — users/{userId}", () => {
     await assertFails(
       updateDoc(doc(alice.firestore(), "users/bob"), {
         displayName: "Hacked",
-      })
+      }),
     );
   });
 
@@ -128,7 +124,7 @@ describe("update — users/{userId}", () => {
     await assertFails(
       updateDoc(doc(unauth.firestore(), "users/alice"), {
         displayName: "Hacked",
-      })
+      }),
     );
   });
 });

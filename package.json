@@ -7,7 +7,6 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "vitest",
     "create:feature": "tsx scripts/create-feature.ts",
     "spec:lint": "tsx scripts/spec-lint.ts",
     "spec:trace": "tsx scripts/spec-trace.ts",
@@ -15,7 +14,8 @@
     "spec:check": "npm run spec:lint && npm run spec:status",
     "precommit:spec": "tsx scripts/precommit-spec.ts",
     "mcp:spec-rag": "tsx mcp/spec-rag-server.ts",
-    "test:rules": "firebase emulators:exec --only firestore \"vitest run rules.test\""
+    "test": "vitest --run --exclude 'tests/firestore.rules.test.ts'",
+    "test:rules": "firebase emulators:exec --only firestore \"vitest run tests/firestore.rules.test.ts\""
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
