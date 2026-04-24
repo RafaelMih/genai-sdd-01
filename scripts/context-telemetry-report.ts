@@ -105,3 +105,36 @@ for (const [feature, data] of [...byFeature.entries()].sort((left, right) =>
     `| ${feature} | ${data.calls} | ${data.estimatedTokens} | ${data.chunks} | ${(data.durationMs / data.calls).toFixed(2)} | ${data.cacheHits} | ${data.warnings} | ${data.summaryCalls} | ${data.fullCalls} |`,
   );
 }
+
+const bySession = new Map<
+  string,
+  { calls: number; features: Set<string>; estimatedTokens: number; durationMs: number }
+>();
+
+for (const event of events) {
+  const sid = event.sessionId ?? "unknown";
+  const current = bySession.get(sid) ?? {
+    calls: 0,
+    features: new Set<string>(),
+    estimatedTokens: 0,
+    durationMs: 0,
+  };
+  current.calls += 1;
+  current.features.add(event.feature);
+  current.estimatedTokens += event.estimatedTokens ?? 0;
+  current.durationMs += event.durationMs ?? 0;
+  bySession.set(sid, current);
+}
+
+console.log("");
+console.log("| Session | Calls | Est. tokens | Total ms | Features |");
+console.log("| --- | ---: | ---: | ---: | --- |");
+
+for (const [sessionId, data] of [...bySession.entries()].sort(
+  (left, right) => right[1].calls - left[1].calls,
+)) {
+  const shortId = sessionId.length > 8 ? `${sessionId.slice(0, 8)}…` : sessionId;
+  console.log(
+    `| ${shortId} | ${data.calls} | ${data.estimatedTokens} | ${data.durationMs} | ${[...data.features].join(", ")} |`,
+  );
+}

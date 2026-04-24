@@ -36,6 +36,7 @@ const MANIFEST_PATH = path.resolve("specs", ".index", "spec-manifest.json");
 const MAX_CONTEXT_CHUNKS = 6;
 const MAX_CONTEXT_TOKENS = 900;
 const SUMMARY_BUDGET_TOKENS = 1400;
+const FULL_BUDGET_HARD_BLOCK = 6000;
 
 const feature = process.argv[2];
 const version = process.argv[3];
@@ -66,13 +67,16 @@ async function loadManifest(): Promise<SpecManifestEntry[]> {
 }
 
 async function loadFeatureContext(featureName: string): Promise<string | null> {
-  const contextPath = path.resolve("specs", "features", featureName, "CONTEXT.md");
+  const [context, traceabilitySummary] = await Promise.all([
+    readFile(path.resolve("specs", "features", featureName, "CONTEXT.md"), "utf8").catch(() => null),
+    readFile(
+      path.resolve("specs", "features", featureName, "TRACEABILITY-SUMMARY.md"),
+      "utf8",
+    ).catch(() => null),
+  ]);
 
-  try {
-    return await readFile(contextPath, "utf8");
-  } catch {
-    return null;
-  }
+  if (!context && !traceabilitySummary) return null;
+  return [context, traceabilitySummary].filter(Boolean).join("\n\n---\n\n");
 }
 
 function compareVersions(left: string, right: string): number {
@@ -174,6 +178,7 @@ async function main() {
     MANIFEST_PATH,
     ...relatedSpecPaths,
     path.resolve("specs", "features", feature, "TRACEABILITY.md"),
+    path.resolve("specs", "features", feature, "TRACEABILITY-SUMMARY.md"),
     path.resolve("specs", "features", feature, "changelog.md"),
   ];
   if (featureContext) {
@@ -246,6 +251,15 @@ async function main() {
   const budgetWarning = budgetExceeded
     ? `Budget warning: estimated context tokens (${totalTokens}) exceeded the recommended budget.\n\n`
     : "";
+
+  const outputTokens = Math.ceil(
+    `${summaryPrefix}${context}`.split(/\s+/).filter(Boolean).length * 1.3,
+  );
+  if (outputTokens > FULL_BUDGET_HARD_BLOCK) {
+    throw new Error(
+      `Context hard block: estimated ${outputTokens} tokens exceeds the ${FULL_BUDGET_HARD_BLOCK}-token limit. Reduce chunk count or use a more specific query.`,
+    );
+  }
 
   const output = `
 ${budgetWarning}You are implementing a Spec Driven Development task.

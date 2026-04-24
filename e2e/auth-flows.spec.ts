@@ -62,6 +62,32 @@ test("login valido redireciona para o dashboard", async ({ page }) => {
   await expect(page.getByText("Ivysaur")).toBeVisible();
 });
 
+test("signup com nome vazio exibe erro de validacao", async ({ page }) => {
+  await page.goto("/signup");
+  await page.getByRole("button", { name: "Criar conta" }).click();
+  await expect(page.getByText("Nome é obrigatório")).toBeVisible();
+});
+
+test("signup com senha curta exibe erro de validacao", async ({ page }) => {
+  await page.goto("/signup");
+  await page.getByLabel("Nome").fill("Ash");
+  await page.getByLabel("E-mail").fill("ash-short@test.com");
+  await page.locator("#password").fill("abc");
+  await page.locator("#confirmPassword").fill("abc");
+  await page.getByRole("button", { name: "Criar conta" }).click();
+  await expect(page.getByText("A senha deve ter pelo menos 6 caracteres")).toBeVisible();
+});
+
+test("signup com senhas divergentes exibe erro de validacao", async ({ page }) => {
+  await page.goto("/signup");
+  await page.getByLabel("Nome").fill("Ash");
+  await page.getByLabel("E-mail").fill("ash-mismatch@test.com");
+  await page.locator("#password").fill("pikachu123");
+  await page.locator("#confirmPassword").fill("raichu456");
+  await page.getByRole("button", { name: "Criar conta" }).click();
+  await expect(page.getByText("As senhas não conferem")).toBeVisible();
+});
+
 test("acesso ao dashboard sem autenticacao redireciona para login", async ({ page }) => {
   await page.goto("/dashboard");
   await expect(page).toHaveURL(/\/login$/);

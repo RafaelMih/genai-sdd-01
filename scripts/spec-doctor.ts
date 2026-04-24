@@ -41,6 +41,11 @@ const steps: Step[] = [
     args: ["run", "spec:drift"],
   },
   {
+    name: "Generate traceability summaries",
+    command: "npm",
+    args: ["run", "traceability:generate"],
+  },
+  {
     name: "Generate feature contexts/chunks",
     command: "npm",
     args: ["run", "context:generate"],

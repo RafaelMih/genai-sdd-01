@@ -23,7 +23,7 @@ export type ContextTelemetryEvent = {
 
 const TELEMETRY_DIR = path.resolve(".telemetry");
 const TELEMETRY_FILE = path.join(TELEMETRY_DIR, "context-usage.jsonl");
-const SESSION_ID = randomUUID();
+const SESSION_ID = process.env.CLAUDE_SESSION_ID ?? randomUUID();
 
 export async function recordContextTelemetry(event: ContextTelemetryEvent): Promise<void> {
   await mkdir(TELEMETRY_DIR, { recursive: true });

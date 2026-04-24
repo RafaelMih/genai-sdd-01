@@ -38,11 +38,16 @@ async function readSpecFile(relativePath: string): Promise<string> {
 }
 
 async function readFeatureContext(feature: string): Promise<string | null> {
-  try {
-    return await readFile(path.resolve("specs", "features", feature, "CONTEXT.md"), "utf8");
-  } catch {
-    return null;
-  }
+  const [context, traceabilitySummary] = await Promise.all([
+    readFile(path.resolve("specs", "features", feature, "CONTEXT.md"), "utf8").catch(() => null),
+    readFile(
+      path.resolve("specs", "features", feature, "TRACEABILITY-SUMMARY.md"),
+      "utf8",
+    ).catch(() => null),
+  ]);
+
+  if (!context && !traceabilitySummary) return null;
+  return [context, traceabilitySummary].filter(Boolean).join("\n\n---\n\n");
 }
 
 function normalizeWhitespace(value: string): string {
@@ -147,6 +152,7 @@ async function retrieveRelevantSpecs(
     MANIFEST_PATH,
     ...relatedEntries.map((entry) => path.resolve(entry.path)),
     path.resolve("specs", "features", feature, "TRACEABILITY.md"),
+    path.resolve("specs", "features", feature, "TRACEABILITY-SUMMARY.md"),
     path.resolve("specs", "features", feature, "changelog.md"),
   ];
   if (featureContext) {
