@@ -5,6 +5,15 @@ import path from "node:path";
 
 type SpecType = "product" | "technical" | "decision" | "feature";
 
+type SpecManifestEntry = {
+  id: string;
+  path: string;
+  type: SpecType;
+  feature?: string;
+  version?: string;
+  dependsOn?: string[];
+};
+
 type SpecChunk = {
   id: string;
   specId: string;
@@ -19,13 +28,16 @@ type SpecChunk = {
 };
 
 const CHUNKS_PATH = path.resolve("specs", ".index", "spec-chunks.json");
+const MANIFEST_PATH = path.resolve("specs", ".index", "spec-manifest.json");
+const MAX_CONTEXT_CHUNKS = 8;
+const MAX_CONTEXT_TOKENS = 900;
 
 const feature = process.argv[2];
 const version = process.argv[3];
 
 if (!feature) {
   console.error(`
-❌ Missing feature argument
+Missing feature argument
 
 Usage:
   npm run ai:context <feature> [version]
@@ -43,22 +55,70 @@ async function loadChunks(): Promise<SpecChunk[]> {
   return JSON.parse(raw) as SpecChunk[];
 }
 
-function scoreChunk(chunk: SpecChunk, feature: string, version?: string): number {
+async function loadManifest(): Promise<SpecManifestEntry[]> {
+  const raw = await readFile(MANIFEST_PATH, "utf8");
+  return JSON.parse(raw) as SpecManifestEntry[];
+}
+
+function compareVersions(left: string, right: string): number {
+  const leftParts = left.split(".").map(Number);
+  const rightParts = right.split(".").map(Number);
+
+  for (let index = 0; index < Math.max(leftParts.length, rightParts.length); index += 1) {
+    const leftPart = leftParts[index] ?? 0;
+    const rightPart = rightParts[index] ?? 0;
+
+    if (leftPart !== rightPart) return leftPart - rightPart;
+  }
+
+  return 0;
+}
+
+function resolveTargetSpec(
+  manifest: SpecManifestEntry[],
+  featureName: string,
+  targetVersion?: string,
+): SpecManifestEntry | null {
+  const candidates = manifest
+    .filter((entry) => entry.type === "feature" && entry.feature === featureName)
+    .filter((entry) => (targetVersion ? entry.version === targetVersion : true))
+    .sort((left, right) => compareVersions(right.version ?? "0.0.0", left.version ?? "0.0.0"));
+
+  return candidates[0] ?? null;
+}
+
+function scoreChunk(
+  chunk: SpecChunk,
+  featureName: string,
+  relatedSpecIds: Set<string>,
+  targetVersion?: string,
+): number {
   let score = 0;
 
-  if (chunk.feature === feature) score += 100;
-  if (chunk.specId === feature) score += 80;
+  if (!relatedSpecIds.has(chunk.specId) && chunk.feature !== featureName) {
+    return -1_000;
+  }
 
-  if (version && chunk.version === version) score += 50;
-  if (version && chunk.version !== version) score -= 100;
+  if (chunk.feature === featureName) score += 100;
+  if (relatedSpecIds.has(chunk.specId)) score += 60;
 
-  if (chunk.type === "feature") score += 30;
+  if (targetVersion && chunk.version === targetVersion) score += 40;
+  if (targetVersion && chunk.version !== targetVersion) score -= 100;
+
+  if (chunk.type === "feature") score += 25;
+  if (chunk.type === "technical") score += 10;
 
   if (/objective/i.test(chunk.section)) score += 20;
   if (/scope/i.test(chunk.section)) score += 20;
-  if (/acceptance criteria/i.test(chunk.section)) score += 40;
-  if (/user flow/i.test(chunk.section)) score += 30;
-  if (/tests?/i.test(chunk.section)) score += 20;
+  if (/out of scope/i.test(chunk.section)) score += 15;
+  if (/acceptance criteria/i.test(chunk.section)) score += 45;
+  if (/contracts?/i.test(chunk.section)) score += 35;
+  if (/dependencies/i.test(chunk.section)) score += 25;
+  if (/open questions/i.test(chunk.section)) score += 25;
+  if (/user flow/i.test(chunk.section)) score += 20;
+  if (/tests?/i.test(chunk.section)) score += 10;
+
+  score -= Math.floor(chunk.tokens / 80);
 
   return score;
 }
@@ -75,17 +135,36 @@ ${chunk.content}`;
 }
 
 async function main() {
-  const chunks = await loadChunks();
+  const [chunks, manifest] = await Promise.all([loadChunks(), loadManifest()]);
+  const targetSpec = resolveTargetSpec(manifest, feature, version);
 
-  const relevantChunks = chunks
+  if (!targetSpec) {
+    throw new Error(
+      `No feature spec manifest entry found for "${feature}"${version ? ` v${version}` : ""}.`,
+    );
+  }
+
+  const relatedSpecIds = new Set<string>([targetSpec.id, ...(targetSpec.dependsOn ?? [])]);
+
+  const rankedChunks = chunks
     .map((chunk) => ({
       chunk,
-      score: scoreChunk(chunk, feature, version),
+      score: scoreChunk(chunk, feature, relatedSpecIds, targetSpec.version ?? version),
     }))
     .filter((item) => item.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 20)
+    .sort((left, right) => right.score - left.score)
     .map((item) => item.chunk);
+
+  const relevantChunks: SpecChunk[] = [];
+  let totalTokens = 0;
+
+  for (const chunk of rankedChunks) {
+    if (relevantChunks.length >= MAX_CONTEXT_CHUNKS) break;
+    if (relevantChunks.length > 0 && totalTokens + chunk.tokens > MAX_CONTEXT_TOKENS) continue;
+
+    relevantChunks.push(chunk);
+    totalTokens += chunk.tokens;
+  }
 
   if (relevantChunks.length === 0) {
     throw new Error(
@@ -105,7 +184,8 @@ If something is missing, stop and ask for spec clarification.
 Do not invent routes, fields, validations, schemas, UI behavior, business rules, or tests.
 
 Feature: ${feature}
-Version: ${version ?? "latest/relevant"}
+Version: ${targetSpec.version ?? version ?? "latest/relevant"}
+Context budget: ${totalTokens} estimated tokens across ${relevantChunks.length} chunks
 
 Relevant specs:
 

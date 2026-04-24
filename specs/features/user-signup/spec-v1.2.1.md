@@ -225,7 +225,6 @@ restarts. No override is required by this feature.
 
 - `specs/decisions/ADR-001-use-firebase.md`
 - `specs/technical/firestore-schema-v1.0.0.md` — defines the `users/{uid}` document structure
-  (note: `phone` field is not yet in this schema; schema update is required before deployment)
 - `specs/technical/security-rules-v1.0.0.md` — permits authenticated users to create their own document
 - Firebase Auth SDK: `createUserWithEmailAndPassword`, `onAuthStateChanged`, `signOut`, `AuthError.code`
 - Route `/dashboard`: must exist and be reachable before this feature is deployed

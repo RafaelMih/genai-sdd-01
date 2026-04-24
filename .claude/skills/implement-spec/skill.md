@@ -55,10 +55,10 @@ Optional input when version is provided:
 - Path convention:
 
 ```txt
-specs/features/<feature>/traceability-v<version>.md
+specs/features/<feature>/TRACEABILITY.md
 ```
 
-- Traceability version MUST match the spec version used.
+- The `Spec:` line inside `TRACEABILITY.md` MUST point to the active spec version.
 
 - Do NOT create or update traceability files under:
 
@@ -111,7 +111,7 @@ specs/features/<feature>/
 9. Add or update the traceability file at:
 
 ```txt
-specs/features/<feature>/traceability-v<version>.md
+specs/features/<feature>/TRACEABILITY.md
 ```
 
 10. Report result.

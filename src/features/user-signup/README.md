@@ -8,4 +8,4 @@ This folder contains the user-signup feature implementation.
 - hooks/
 - services/
 - tests/
-- TRACEABILITY.md
+- Traceability lives in `specs/features/user-signup/TRACEABILITY.md`

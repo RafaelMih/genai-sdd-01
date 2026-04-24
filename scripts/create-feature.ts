@@ -92,7 +92,7 @@ Describe the feature outcome in one sentence.
 - [ ] Implement UI
 - [ ] Implement service logic
 - [ ] Add tests
-- [ ] Update TRACEABILITY.md
+- [ ] Update specs/features/${featureName}/TRACEABILITY.md
 `;
 
   const changelogContent = `# Changelog - ${featureTitle}
@@ -122,13 +122,13 @@ This folder contains the ${featureName} feature implementation.
 - hooks/
 - services/
 - tests/
-- TRACEABILITY.md
+- Traceability lives in specs/features/${featureName}/TRACEABILITY.md
 `;
 
   await writeFile(path.join(specDir, `spec-v${version}.md`), specContent, "utf8");
   await writeFile(path.join(specDir, `tasks-v${version}.md`), tasksContent, "utf8");
   await writeFile(path.join(specDir, "changelog.md"), changelogContent, "utf8");
-  await writeFile(path.join(srcDir, "TRACEABILITY.md"), traceabilityContent, "utf8");
+  await writeFile(path.join(specDir, "TRACEABILITY.md"), traceabilityContent, "utf8");
   await writeFile(path.join(srcDir, "README.md"), readmeContent, "utf8");
 
   // ---- Manifest update (RAG support) ----

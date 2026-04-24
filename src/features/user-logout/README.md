@@ -8,4 +8,4 @@ This folder contains the user-logout feature implementation.
 - hooks/
 - services/
 - tests/
-- TRACEABILITY.md
+- Traceability lives in `specs/features/user-logout/TRACEABILITY.md`

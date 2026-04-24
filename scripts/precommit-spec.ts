@@ -2,7 +2,7 @@
 import { execSync } from "node:child_process";
 import process from "node:process";
 
-const commands = ["npm run spec:lint", "npm run spec:trace"];
+const commands = ["npm run spec:check"];
 
 try {
   for (const command of commands) {
