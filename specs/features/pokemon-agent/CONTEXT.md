@@ -35,7 +35,7 @@ Definir o comportamento de um agente especializado em Pokémons que usa as ferra
 
 ## Dependencies
 
-- MCP server `pokemon` registrado em `.claude/settings.json`
+- MCP server `pokemon` registrado na configuracao de agentes do workspace (atualmente `.claude/settings.json`)
 - `mcp/pokemon-mcp.ts` expondo `list_pokemons` e `get_pokemon`
 
 ## Tests

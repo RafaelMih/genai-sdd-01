@@ -12,6 +12,7 @@ import {
   writeContextCache,
 } from "../scripts/context-cache.js";
 import { recordContextTelemetry } from "../scripts/context-telemetry.js";
+import { checkSpecForBlockers, formatBlockerError } from "../scripts/spec-lint-blockers.js";
 
 type SpecManifestEntry = {
   id: string;
@@ -143,6 +144,12 @@ async function retrieveRelevantSpecs(
 
   if (!featureSpec) {
     throw new Error(`No feature spec found for "${feature}"${version ? ` v${version}` : ""}.`);
+  }
+
+  const featureSpecContent = await readSpecFile(featureSpec.path);
+  const blockers = checkSpecForBlockers(featureSpecContent);
+  if (blockers.length > 0) {
+    throw new Error(formatBlockerError(feature, blockers));
   }
 
   const relatedIds = new Set<string>([featureSpec.id, ...(featureSpec.dependsOn ?? [])]);

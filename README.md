@@ -35,10 +35,16 @@ npm run e2e
 ## Fontes canonicas
 
 - Processo global e padroes: `.claude/GLOBAL-STANDARDS.md`
-- Regras de execucao para Claude: `CLAUDE.md`
+- Regras de execucao para agentes: `AGENTS.md` e `CLAUDE.md`
 - Spec ativa por feature: `specs/features/<feature>/spec-vX.Y.Z.md`
 - Contexto curto por feature: `specs/features/<feature>/CONTEXT.md`
 - Traceabilidade por feature: `specs/features/<feature>/TRACEABILITY.md`
+
+## Compatibilidade de agentes
+
+- `CLAUDE.md` continua servindo como referencia para workflows baseados em Claude
+- `AGENTS.md` espelha as mesmas regras em formato neutro para Codex e outros agentes
+- A pasta `.claude/` permanece como local de skills, agentes e configuracoes MCP do workspace, mas o processo SDD descrito nos arquivos Markdown e compartilhado entre hosts de agente
 
 ## Observacoes
 

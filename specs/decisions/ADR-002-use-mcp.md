@@ -15,7 +15,7 @@ Use the Model Context Protocol (MCP) to expose project-specific tools as typed, 
 - `spec-rag-mcp.ts` — spec retrieval with summary/full modes, cache, and telemetry
 - `pokemon-mcp.ts` — PokéAPI access (list, detail) without direct HTTP calls in feature code
 
-MCP servers are registered in `.claude/settings.json` and invoked by agents and skills.
+MCP servers are registered in the workspace agent configuration (currently `.claude/settings.json`) and invoked by agents and skills.
 
 ## Consequences
 

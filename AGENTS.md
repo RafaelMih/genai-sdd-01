@@ -1,6 +1,6 @@
 # Project Instructions
 
-This file is the Claude-oriented entrypoint for the same project rules mirrored in `AGENTS.md` for Codex-compatible workflows.
+This file mirrors the project agent guidance so the repository can be used with both Codex and Claude-compatible workflows.
 
 ## Mission
 
@@ -75,7 +75,7 @@ If any condition fails:
 
 1. Active spec summary
 2. Files to edit/create
-3. Acceptance criteria mapping (AC → implementation)
+3. Acceptance criteria mapping (AC -> implementation)
 4. Risks / ambiguities
 
 ---
@@ -84,7 +84,7 @@ If any condition fails:
 
 1. What changed
 2. Tests added or updated
-3. Traceability updates (AC → test → code)
+3. Traceability updates (AC -> test -> code)
 4. Open issues or ambiguities
 
 ---
@@ -156,15 +156,15 @@ Rules:
 
 ## Pokemon Agent
 
-Use the `pokemon-agent` agent automatically when the user asks about Pokémons.
+Use the `pokemon-agent` agent automatically when the user asks about Pokemons.
 
 **Trigger phrases (any of these activate the agent):**
 
-- "pokémon", "pokémons", "pokédex"
-- "traga pokémons", "quais pokémons", "liste pokémons"
-- "filtre pokémons", "filtre por", "pokémons com"
-- "detalhes do", "como é o" (when referring to a Pokémon)
-- "traga mais" (in a Pokémon context)
-- any Pokémon name or Pokédex number in context
+- "pokemon", "pokemons", "pokedex"
+- "traga pokemons", "quais pokemons", "liste pokemons"
+- "filtre pokemons", "filtre por", "pokemons com"
+- "detalhes do", "como e o" (when referring to a Pokemon)
+- "traga mais" (in a Pokemon context)
+- any Pokemon name or Pokedex number in context
 
-**Skip:** questions not related to Pokémons or PokéAPI.
+**Skip:** questions not related to Pokemons or PokeAPI.

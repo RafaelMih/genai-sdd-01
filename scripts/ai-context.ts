@@ -5,6 +5,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { buildContextCacheKey, readContextCache, writeContextCache } from "./context-cache.js";
 import { recordContextTelemetry } from "./context-telemetry.js";
+import { checkSpecForBlockers, formatBlockerError } from "./spec-lint-blockers.js";
 
 type SpecType = "product" | "technical" | "decision" | "feature";
 
@@ -169,6 +170,12 @@ async function main() {
     );
   }
 
+  const specContent = await readFile(path.resolve(targetSpec.path), "utf8");
+  const blockers = checkSpecForBlockers(specContent);
+  if (blockers.length > 0) {
+    throw new Error(formatBlockerError(feature, blockers));
+  }
+
   const relatedSpecIds = new Set<string>([targetSpec.id, ...(targetSpec.dependsOn ?? [])]);
   const relatedSpecPaths = manifest
     .filter((entry) => relatedSpecIds.has(entry.id))
@@ -305,6 +312,7 @@ ${summaryPrefix}${context}
     relatedSpecs: [...relatedSpecIds],
   });
 
+  console.error(`[context-id: ${invocationId}] Para avaliar este contexto: npm run rag:feedback -- ${invocationId} up|down`);
   console.log(output);
 }
 

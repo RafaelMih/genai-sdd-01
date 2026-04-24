@@ -22,7 +22,16 @@ type ContextTelemetryEvent = {
   relatedSpecs?: string[];
 };
 
+type RagFeedback = {
+  invocationId: string;
+  feature?: string;
+  timestamp: string;
+  rating: "up" | "down";
+  comment?: string;
+};
+
 const TELEMETRY_FILE = path.resolve(".telemetry", "context-usage.jsonl");
+const FEEDBACK_FILE = path.resolve(".telemetry", "rag-feedback.jsonl");
 
 if (!fs.existsSync(TELEMETRY_FILE)) {
   console.log("No context telemetry recorded yet.");
@@ -137,4 +146,54 @@ for (const [sessionId, data] of [...bySession.entries()].sort(
   console.log(
     `| ${shortId} | ${data.calls} | ${data.estimatedTokens} | ${data.durationMs} | ${[...data.features].join(", ")} |`,
   );
+}
+
+// Feedback do RAG
+const feedbackRecords: RagFeedback[] = fs.existsSync(FEEDBACK_FILE)
+  ? fs
+      .readFileSync(FEEDBACK_FILE, "utf8")
+      .split(/\r?\n/)
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as RagFeedback)
+  : [];
+
+if (feedbackRecords.length === 0) {
+  console.log("\nNenhum feedback de RAG registrado ainda. Use: npm run rag:feedback");
+} else {
+  const ratedIds = new Set(feedbackRecords.map((f) => f.invocationId));
+  const ratedCount = events.filter((e) => e.invocationId && ratedIds.has(e.invocationId)).length;
+  const ups = feedbackRecords.filter((f) => f.rating === "up").length;
+  const downs = feedbackRecords.filter((f) => f.rating === "down").length;
+  const approvalRate = feedbackRecords.length > 0 ? ((ups / feedbackRecords.length) * 100).toFixed(1) : "–";
+
+  console.log(`\nRAG Feedback: ${feedbackRecords.length} avaliações (${ratedCount}/${events.length} invocações avaliadas)`);
+  console.log(`Aprovações: ${ups} ↑  Rejeições: ${downs} ↓  Taxa: ${approvalRate}%`);
+
+  const byFeatureFeedback = new Map<string, { ups: number; downs: number }>();
+  for (const fb of feedbackRecords) {
+    const feature = fb.feature ?? "unknown";
+    const current = byFeatureFeedback.get(feature) ?? { ups: 0, downs: 0 };
+    if (fb.rating === "up") current.ups += 1;
+    else current.downs += 1;
+    byFeatureFeedback.set(feature, current);
+  }
+
+  if (byFeatureFeedback.size > 0) {
+    console.log("");
+    console.log("| Feature | ↑ Up | ↓ Down | Taxa aprovação |");
+    console.log("| --- | ---: | ---: | ---: |");
+    for (const [feat, data] of [...byFeatureFeedback.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+      const total = data.ups + data.downs;
+      const rate = total > 0 ? `${((data.ups / total) * 100).toFixed(1)}%` : "–";
+      console.log(`| ${feat} | ${data.ups} | ${data.downs} | ${rate} |`);
+    }
+  }
+
+  const comments = feedbackRecords.filter((f) => f.comment);
+  if (comments.length > 0) {
+    console.log("\nComentários recentes:");
+    for (const fb of comments.slice(-5)) {
+      console.log(`  [${fb.rating}] ${fb.invocationId.slice(0, 8)}… — "${fb.comment}"`);
+    }
+  }
 }
