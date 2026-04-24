@@ -19,8 +19,8 @@ export const signupSchema = z
     phone: z
       .string()
       .refine(
-        (val) => !val || /^\+?[\d\s()\-]{8,20}$/.test(val),
-        "Telefone inválido"
+        (val) => !val || /^\+?[\d\s()-]{8,20}$/.test(val),
+        "Telefone inválido",
       )
       .optional(),
   })
