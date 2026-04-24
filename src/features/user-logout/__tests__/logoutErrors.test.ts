@@ -5,7 +5,7 @@ describe("getLogoutErrorMessage", () => {
   // AC5
   it("auth/network-request-failed returns Erro de conexão. Tente novamente.", () => {
     expect(getLogoutErrorMessage("auth/network-request-failed")).toBe(
-      "Erro de conexão. Tente novamente."
+      "Erro de conexão. Tente novamente.",
     );
   });
 

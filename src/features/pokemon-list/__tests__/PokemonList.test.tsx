@@ -28,9 +28,7 @@ describe("PokemonList", () => {
 
     render(<PokemonList />);
 
-    expect(
-      screen.getByText("Erro ao carregar Pokémons. Tente novamente."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Erro ao carregar Pokémons. Tente novamente.")).toBeInTheDocument();
     expect(screen.queryByRole("img")).toBeNull();
   });
 

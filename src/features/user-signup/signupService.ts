@@ -7,7 +7,7 @@ export async function createAccount(
   name: string,
   email: string,
   password: string,
-  phone?: string
+  phone?: string,
 ): Promise<void> {
   const { user } = await createUserWithEmailAndPassword(auth, email, password);
   try {

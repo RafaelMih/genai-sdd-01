@@ -27,7 +27,7 @@ function renderForm() {
   render(
     <MemoryRouter>
       <SignupForm />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -50,45 +50,49 @@ describe("SignupForm — Firebase error messages", () => {
 
   // AC10
   it("email-already-in-use shows Este e-mail já está em uso.", async () => {
-    vi.spyOn(signupService, "createAccount").mockRejectedValueOnce({ code: "auth/email-already-in-use" });
+    vi.spyOn(signupService, "createAccount").mockRejectedValueOnce({
+      code: "auth/email-already-in-use",
+    });
     renderForm();
     fillForm("João Silva", "joao@test.com", "pass123", "pass123");
     submit();
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Este e-mail já está em uso.")
+      expect(screen.getByRole("alert")).toHaveTextContent("Este e-mail já está em uso."),
     );
   });
 
   // AC11
   it("network-request-failed shows Erro de conexão.", async () => {
-    vi.spyOn(signupService, "createAccount").mockRejectedValueOnce({ code: "auth/network-request-failed" });
+    vi.spyOn(signupService, "createAccount").mockRejectedValueOnce({
+      code: "auth/network-request-failed",
+    });
     renderForm();
     fillForm("João Silva", "joao@test.com", "pass123", "pass123");
     submit();
-    await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Erro de conexão.")
-    );
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Erro de conexão."));
   });
 
   // AC12
   it("too-many-requests shows Muitas tentativas.", async () => {
-    vi.spyOn(signupService, "createAccount").mockRejectedValueOnce({ code: "auth/too-many-requests" });
+    vi.spyOn(signupService, "createAccount").mockRejectedValueOnce({
+      code: "auth/too-many-requests",
+    });
     renderForm();
     fillForm("João Silva", "joao@test.com", "pass123", "pass123");
     submit();
-    await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Muitas tentativas.")
-    );
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Muitas tentativas."));
   });
 
   // AC13
   it("operation-not-allowed shows Operação não permitida.", async () => {
-    vi.spyOn(signupService, "createAccount").mockRejectedValueOnce({ code: "auth/operation-not-allowed" });
+    vi.spyOn(signupService, "createAccount").mockRejectedValueOnce({
+      code: "auth/operation-not-allowed",
+    });
     renderForm();
     fillForm("João Silva", "joao@test.com", "pass123", "pass123");
     submit();
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Operação não permitida.")
+      expect(screen.getByRole("alert")).toHaveTextContent("Operação não permitida."),
     );
   });
 
@@ -99,7 +103,7 @@ describe("SignupForm — Firebase error messages", () => {
     fillForm("João Silva", "joao@test.com", "pass123", "pass123");
     submit();
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Erro ao criar conta.")
+      expect(screen.getByRole("alert")).toHaveTextContent("Erro ao criar conta."),
     );
   });
 
@@ -107,28 +111,34 @@ describe("SignupForm — Firebase error messages", () => {
   it("submit button disabled and shows Criando conta… while request is in progress", async () => {
     let resolveCreate!: (value: void) => void;
     vi.spyOn(signupService, "createAccount").mockReturnValueOnce(
-      new Promise<void>((r) => { resolveCreate = r; })
+      new Promise<void>((r) => {
+        resolveCreate = r;
+      }),
     );
     renderForm();
     fillForm("João Silva", "joao@test.com", "pass123", "pass123");
     submit();
 
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: /criando conta/i })).toBeDisabled()
+      expect(screen.getByRole("button", { name: /criando conta/i })).toBeDisabled(),
     );
 
-    await act(async () => { resolveCreate(); });
+    await act(async () => {
+      resolveCreate();
+    });
   });
 
   // AC15 exit — button re-enabled with label Criar conta after error
   it("submit button re-enabled with label Criar conta after Firebase error", async () => {
-    vi.spyOn(signupService, "createAccount").mockRejectedValueOnce({ code: "auth/email-already-in-use" });
+    vi.spyOn(signupService, "createAccount").mockRejectedValueOnce({
+      code: "auth/email-already-in-use",
+    });
     renderForm();
     fillForm("João Silva", "joao@test.com", "pass123", "pass123");
     submit();
 
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: /^criar conta$/i })).not.toBeDisabled()
+      expect(screen.getByRole("button", { name: /^criar conta$/i })).not.toBeDisabled(),
     );
   });
 
@@ -139,8 +149,6 @@ describe("SignupForm — Firebase error messages", () => {
     fillForm("João Silva", "joao@test.com", "pass123", "pass123");
     submit();
 
-    await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith("/dashboard", { replace: true })
-    );
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/dashboard", { replace: true }));
   });
 });

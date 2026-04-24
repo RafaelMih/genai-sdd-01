@@ -22,9 +22,7 @@ export function SignupPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-zinc-50 p-6">
       <div className="w-full max-w-md rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
-          Auth
-        </p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Auth</p>
         <h1 className="mt-3 text-2xl font-bold text-zinc-900">Criar conta</h1>
         <div className="mt-6">
           <SignupForm />

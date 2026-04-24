@@ -48,12 +48,13 @@ GET https://pokeapi.co/api/v2/pokemon?limit=20&offset=0
 ```
 
 Resposta:
+
 ```json
 {
   "count": 1302,
   "results": [
     { "name": "bulbasaur", "url": "https://pokeapi.co/api/v2/pokemon/1/" },
-    { "name": "ivysaur",   "url": "https://pokeapi.co/api/v2/pokemon/2/" }
+    { "name": "ivysaur", "url": "https://pokeapi.co/api/v2/pokemon/2/" }
   ]
 }
 ```
@@ -76,19 +77,19 @@ Esta abordagem evita 20 requisições extras de detalhe por Pokémon.
 
 ## UI state contract
 
-| Estado   | Renderização                                          |
-| -------- | ----------------------------------------------------- |
-| loading  | Texto "Carregando Pokémons..." (nenhum card)          |
-| error    | Texto "Erro ao carregar Pokémons. Tente novamente."   |
-| success  | Grade de `PokemonCard` (um por Pokémon retornado)     |
+| Estado  | Renderização                                        |
+| ------- | --------------------------------------------------- |
+| loading | Texto "Carregando Pokémons..." (nenhum card)        |
+| error   | Texto "Erro ao carregar Pokémons. Tente novamente." |
+| success | Grade de `PokemonCard` (um por Pokémon retornado)   |
 
 ## Data contract
 
-| Campo exibido | Origem | Transformação |
-|---|---|---|
-| Número | `id` extraído da `url` | `#${String(id).padStart(3, '0')}` |
-| Nome | `name` do resultado | Primeira letra maiúscula |
-| Sprite | Construído a partir do `id` | URL do repositório de sprites do PokeAPI |
+| Campo exibido | Origem                      | Transformação                            |
+| ------------- | --------------------------- | ---------------------------------------- |
+| Número        | `id` extraído da `url`      | `#${String(id).padStart(3, '0')}`        |
+| Nome          | `name` do resultado         | Primeira letra maiúscula                 |
+| Sprite        | Construído a partir do `id` | URL do repositório de sprites do PokeAPI |
 
 ## Dependencies
 
@@ -97,17 +98,17 @@ Esta abordagem evita 20 requisições extras de detalhe por Pokémon.
 
 ## Tests
 
-| Caso de teste | Tipo | ACs cobertos |
-|---|---|---|
-| `parseIdFromUrl` extrai ID corretamente da URL | Unit | AC2, AC3 |
-| `buildSpriteUrl` constrói URL correta para ID | Unit | AC2 |
-| `formatPokemonNumber` formata com padding correto | Unit | AC2 |
-| `capitalizeName` capitaliza nome corretamente | Unit | AC2 |
-| `fetchPokemons` retorna lista com id, name, spriteUrl | Unit | AC3 |
-| `fetchPokemons` lança erro em falha de rede | Unit | AC5 |
-| Dashboard exibe "Carregando Pokémons..." durante fetch | Integration | AC4 |
+| Caso de teste                                          | Tipo        | ACs cobertos  |
+| ------------------------------------------------------ | ----------- | ------------- |
+| `parseIdFromUrl` extrai ID corretamente da URL         | Unit        | AC2, AC3      |
+| `buildSpriteUrl` constrói URL correta para ID          | Unit        | AC2           |
+| `formatPokemonNumber` formata com padding correto      | Unit        | AC2           |
+| `capitalizeName` capitaliza nome corretamente          | Unit        | AC2           |
+| `fetchPokemons` retorna lista com id, name, spriteUrl  | Unit        | AC3           |
+| `fetchPokemons` lança erro em falha de rede            | Unit        | AC5           |
+| Dashboard exibe "Carregando Pokémons..." durante fetch | Integration | AC4           |
 | Dashboard exibe grade de cards após fetch bem-sucedido | Integration | AC1, AC2, AC3 |
-| Dashboard exibe mensagem de erro após falha do fetch | Integration | AC5 |
+| Dashboard exibe mensagem de erro após falha do fetch   | Integration | AC5           |
 
 ## Open questions
 

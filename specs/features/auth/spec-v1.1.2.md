@@ -81,16 +81,16 @@ Allow users to sign in with an existing account using email and password.
 
 ## Error messages contract
 
-| Firebase error code          | Mensagem exibida ao usuário (pt-BR)                              |
-|------------------------------|------------------------------------------------------------------|
-| auth/user-not-found          | E-mail ou senha incorretos.                                      |
-| auth/wrong-password          | E-mail ou senha incorretos.                                      |
-| auth/invalid-credential      | E-mail ou senha incorretos.                                      |
-| auth/invalid-email           | E-mail inválido                                                  |
-| auth/user-disabled           | Esta conta foi desativada. Entre em contato com o suporte.       |
-| auth/too-many-requests       | Muitas tentativas. Tente novamente mais tarde.                   |
-| auth/network-request-failed  | Falha na conexão. Verifique sua internet e tente novamente.      |
-| (todos os demais)            | Ocorreu um erro inesperado. Tente novamente.                     |
+| Firebase error code         | Mensagem exibida ao usuário (pt-BR)                         |
+| --------------------------- | ----------------------------------------------------------- |
+| auth/user-not-found         | E-mail ou senha incorretos.                                 |
+| auth/wrong-password         | E-mail ou senha incorretos.                                 |
+| auth/invalid-credential     | E-mail ou senha incorretos.                                 |
+| auth/invalid-email          | E-mail inválido                                             |
+| auth/user-disabled          | Esta conta foi desativada. Entre em contato com o suporte.  |
+| auth/too-many-requests      | Muitas tentativas. Tente novamente mais tarde.              |
+| auth/network-request-failed | Falha na conexão. Verifique sua internet e tente novamente. |
+| (todos os demais)           | Ocorreu um erro inesperado. Tente novamente.                |
 
 > `auth/user-not-found` e `auth/wrong-password` mapeiam para a mesma mensagem intencionalmente
 > para evitar enumeração de contas.
@@ -105,16 +105,19 @@ Allow users to sign in with an existing account using email and password.
 ## Validation contract
 
 **Email**
+
 - Required: non-empty string; failure message → "E-mail é obrigatório" (AC1)
 - Format: must match `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`; failure message → "E-mail inválido" (AC2)
 - Validations run in order; first failure stops the chain
 
 **Password**
+
 - Required: non-empty string; failure message → "Senha é obrigatória" (AC3)
 - Minimum length: ≥ 6 characters; failure message → "A senha deve ter pelo menos 6 caracteres" (AC4)
 - Validations run in order; first failure stops the chain
 
 **Trigger rules**
+
 - Validation runs on form submit
 - Validation also runs on individual field blur, but only after the first submit attempt
   (react-hook-form `mode: "onSubmit"` with `reValidateMode: "onChange"` or equivalent)
@@ -123,10 +126,10 @@ Allow users to sign in with an existing account using email and password.
 
 ## Redirect contract
 
-| Trigger | Source | Destination | Semantics | Browser back from destination |
-|---------|--------|-------------|-----------|-------------------------------|
-| Successful sign-in | /login | /dashboard | `replace` | Does not return to /login |
-| User already authenticated | /login | /dashboard | `replace` | Does not return to /login |
+| Trigger                    | Source | Destination | Semantics | Browser back from destination |
+| -------------------------- | ------ | ----------- | --------- | ----------------------------- |
+| Successful sign-in         | /login | /dashboard  | `replace` | Does not return to /login     |
+| User already authenticated | /login | /dashboard  | `replace` | Does not return to /login     |
 
 Both redirects use the router's `navigate` function (not a hard page reload).
 
@@ -135,20 +138,20 @@ Both redirects use the router's `navigate` function (not a hard page reload).
 - Auth state is observed via Firebase Auth `onAuthStateChanged`
 - State values and their rendering behavior:
 
-| State value | Meaning          | Login page renders     |
-|-------------|------------------|------------------------|
-| `undefined` | Resolving        | Nothing (no flash)     |
-| `null`      | Unauthenticated  | Login form             |
-| `User`      | Authenticated    | Redirect to /dashboard |
+| State value | Meaning         | Login page renders     |
+| ----------- | --------------- | ---------------------- |
+| `undefined` | Resolving       | Nothing (no flash)     |
+| `null`      | Unauthenticated | Login form             |
+| `User`      | Authenticated   | Redirect to /dashboard |
 
 ## UI state contract
 
-| State         | Button label | Button disabled | Firebase error message |
-|---------------|--------------|-----------------|------------------------|
-| Default        | Entrar       | No              | Hidden                 |
-| Submitting     | Entrando…    | Yes             | Hidden (cleared)       |
-| Error (Firebase) | Entrar    | No              | Visible (above button) |
-| Success        | —            | —               | — (page redirects)     |
+| State            | Button label | Button disabled | Firebase error message |
+| ---------------- | ------------ | --------------- | ---------------------- |
+| Default          | Entrar       | No              | Hidden                 |
+| Submitting       | Entrando…    | Yes             | Hidden (cleared)       |
+| Error (Firebase) | Entrar       | No              | Visible (above button) |
+| Success          | —            | —               | — (page redirects)     |
 
 - Firebase error message placement: below the password field, above the submit button
 - Firebase error message lifecycle: cleared at the start of each new submit attempt; not
@@ -181,7 +184,7 @@ responsibility of a separate onboarding or sign-up feature.
 ## Tests
 
 | Caso de teste                                          | Tipo        | ACs cobertos |
-|--------------------------------------------------------|-------------|--------------|
+| ------------------------------------------------------ | ----------- | ------------ |
 | Validação de email vazio                               | Unit        | AC1          |
 | Validação de email que não corresponde ao padrão       | Unit        | AC2          |
 | Validação de senha vazia                               | Unit        | AC3          |

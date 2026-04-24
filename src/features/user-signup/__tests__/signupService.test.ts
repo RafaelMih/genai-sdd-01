@@ -30,20 +30,14 @@ describe("createAccount", () => {
 
   // AC17 — Firestore document created with correct fields
   it("creates Firestore document at users/{uid} with correct fields after auth success", async () => {
-    vi.mocked(
-      firebaseAuth.createUserWithEmailAndPassword,
-    ).mockResolvedValueOnce({
+    vi.mocked(firebaseAuth.createUserWithEmailAndPassword).mockResolvedValueOnce({
       user: { uid: "test-uid-123" },
     } as UserCredential);
     vi.mocked(firebaseFirestore.setDoc).mockResolvedValueOnce(undefined);
 
     await createAccount("João Silva", "joao@test.com", "pass123");
 
-    expect(firebaseFirestore.doc).toHaveBeenCalledWith(
-      expect.anything(),
-      "users",
-      "test-uid-123",
-    );
+    expect(firebaseFirestore.doc).toHaveBeenCalledWith(expect.anything(), "users", "test-uid-123");
     expect(firebaseFirestore.setDoc).toHaveBeenCalledWith("doc-ref", {
       displayName: "João Silva",
       email: "joao@test.com",
@@ -55,9 +49,7 @@ describe("createAccount", () => {
 
   // AC21 — phone present → Firestore document includes phone field
   it("creates Firestore document with phone field when phone is provided", async () => {
-    vi.mocked(
-      firebaseAuth.createUserWithEmailAndPassword,
-    ).mockResolvedValueOnce({
+    vi.mocked(firebaseAuth.createUserWithEmailAndPassword).mockResolvedValueOnce({
       user: { uid: "test-uid-123" },
     } as UserCredential);
     vi.mocked(firebaseFirestore.setDoc).mockResolvedValueOnce(undefined);
@@ -76,9 +68,7 @@ describe("createAccount", () => {
 
   // AC21 — phone absent → Firestore document omits phone field
   it("creates Firestore document without phone field when phone is empty string", async () => {
-    vi.mocked(
-      firebaseAuth.createUserWithEmailAndPassword,
-    ).mockResolvedValueOnce({
+    vi.mocked(firebaseAuth.createUserWithEmailAndPassword).mockResolvedValueOnce({
       user: { uid: "test-uid-123" },
     } as UserCredential);
     vi.mocked(firebaseFirestore.setDoc).mockResolvedValueOnce(undefined);
@@ -96,9 +86,7 @@ describe("createAccount", () => {
 
   // Partial failure contract — signOut called when Firestore write fails
   it("calls signOut and rethrows when Firestore write fails after auth success", async () => {
-    vi.mocked(
-      firebaseAuth.createUserWithEmailAndPassword,
-    ).mockResolvedValueOnce({
+    vi.mocked(firebaseAuth.createUserWithEmailAndPassword).mockResolvedValueOnce({
       user: { uid: "test-uid-123" },
     } as UserCredential);
     vi.mocked(firebaseFirestore.setDoc).mockRejectedValueOnce({
@@ -106,9 +94,7 @@ describe("createAccount", () => {
     });
     vi.mocked(firebaseAuth.signOut).mockResolvedValueOnce(undefined);
 
-    await expect(
-      createAccount("João Silva", "joao@test.com", "pass123"),
-    ).rejects.toMatchObject({
+    await expect(createAccount("João Silva", "joao@test.com", "pass123")).rejects.toMatchObject({
       code: "permission-denied",
     });
     expect(firebaseAuth.signOut).toHaveBeenCalled();

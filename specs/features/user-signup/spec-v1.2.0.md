@@ -87,33 +87,39 @@ An optional phone number may be provided and is persisted in the user profile.
 ## Validation contract
 
 **Name**
+
 - Required: non-empty string; failure message → "Nome é obrigatório" (AC1)
 - Minimum length: ≥ 2 characters; failure message → "O nome deve ter pelo menos 2 caracteres" (AC2)
 - Maximum length: ≤ 100 characters; failure message → "O nome deve ter no máximo 100 caracteres" (AC3)
 - Validations run in order; first failure stops the chain
 
 **Email**
+
 - Required: non-empty string; failure message → "E-mail é obrigatório" (AC4)
 - Format: must match `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`; failure message → "E-mail inválido" (AC5)
 - Validations run in order; first failure stops the chain
 
 **Password**
+
 - Required: non-empty string; failure message → "Senha é obrigatória" (AC6)
 - Minimum length: ≥ 6 characters; failure message → "A senha deve ter pelo menos 6 caracteres" (AC7)
 - Validations run in order; first failure stops the chain
 
 **Confirm password**
+
 - Required: non-empty string; failure message → "Confirmação de senha é obrigatória" (AC8)
 - Must match the value of the password field at time of submit; failure message → "As senhas não conferem" (AC9)
 - Validations run in order; first failure stops the chain
 
 **Phone** (optional)
+
 - If empty (blank string or absent): no validation runs; field passes silently (AC19)
 - If non-empty: must match `/^\+?[\d\s()\-]{8,20}$/`; failure message → "Telefone inválido" (AC20)
 - The regex allows an optional leading `+` followed by digits, spaces, parentheses, and hyphens,
   with a total length between 8 and 20 characters
 
 **Trigger rules**
+
 - Validation runs on form submit
 - Validation also runs on individual field change, but only after the first submit attempt
   (react-hook-form `mode: "onSubmit"` with `reValidateMode: "onChange"` or equivalent)
@@ -122,14 +128,14 @@ An optional phone number may be provided and is persisted in the user profile.
 
 ## Error messages contract
 
-| Firebase error code            | Mensagem exibida ao usuário (pt-BR)     |
-|--------------------------------|-----------------------------------------|
-| `auth/email-already-in-use`    | Este e-mail já está em uso.             |
-| `auth/invalid-email`           | E-mail inválido                         |
-| `auth/network-request-failed`  | Erro de conexão. Tente novamente.       |
-| `auth/too-many-requests`       | Muitas tentativas. Tente mais tarde.    |
-| `auth/operation-not-allowed`   | Operação não permitida.                 |
-| (todos os demais)              | Erro ao criar conta.                    |
+| Firebase error code           | Mensagem exibida ao usuário (pt-BR)  |
+| ----------------------------- | ------------------------------------ |
+| `auth/email-already-in-use`   | Este e-mail já está em uso.          |
+| `auth/invalid-email`          | E-mail inválido                      |
+| `auth/network-request-failed` | Erro de conexão. Tente novamente.    |
+| `auth/too-many-requests`      | Muitas tentativas. Tente mais tarde. |
+| `auth/operation-not-allowed`  | Operação não permitida.              |
+| (todos os demais)             | Erro ao criar conta.                 |
 
 > `auth/invalid-email` is a fallback: if client-side email validation is bypassed (e.g., via DevTools),
 > Firebase may return this code. It must be handled but is not a duplicate of AC5.
@@ -139,10 +145,10 @@ An optional phone number may be provided and is persisted in the user profile.
 
 ## Redirect contract
 
-| Trigger                        | Source   | Destination  | Semantics | Browser back from destination |
-|--------------------------------|----------|--------------|-----------|-------------------------------|
-| Successful signup              | /signup  | /dashboard   | `replace` | Does not return to /signup    |
-| User already authenticated     | /signup  | /dashboard   | `replace` | Does not return to /signup    |
+| Trigger                    | Source  | Destination | Semantics | Browser back from destination |
+| -------------------------- | ------- | ----------- | --------- | ----------------------------- |
+| Successful signup          | /signup | /dashboard  | `replace` | Does not return to /signup    |
+| User already authenticated | /signup | /dashboard  | `replace` | Does not return to /signup    |
 
 Both redirects use the router's `navigate` function (not a hard page reload).
 
@@ -150,20 +156,20 @@ Both redirects use the router's `navigate` function (not a hard page reload).
 
 Auth state is observed via Firebase Auth `onAuthStateChanged`.
 
-| State value | Meaning          | Signup page renders           |
-|-------------|------------------|-------------------------------|
-| `undefined` | Resolving        | Nothing (no flash of form)    |
-| `null`      | Unauthenticated  | Signup form                   |
-| `User`      | Authenticated    | Redirect to /dashboard        |
+| State value | Meaning         | Signup page renders        |
+| ----------- | --------------- | -------------------------- |
+| `undefined` | Resolving       | Nothing (no flash of form) |
+| `null`      | Unauthenticated | Signup form                |
+| `User`      | Authenticated   | Redirect to /dashboard     |
 
 ## UI state contract
 
-| State             | Button label   | Button disabled | Firebase error message |
-|-------------------|----------------|-----------------|------------------------|
-| Default           | Criar conta    | No              | Hidden                 |
-| Submitting        | Criando conta… | Yes             | Hidden (cleared)       |
-| Error (Firebase)  | Criar conta    | No              | Visible (above button) |
-| Success           | —              | —               | — (page redirects)     |
+| State            | Button label   | Button disabled | Firebase error message |
+| ---------------- | -------------- | --------------- | ---------------------- |
+| Default          | Criar conta    | No              | Hidden                 |
+| Submitting       | Criando conta… | Yes             | Hidden (cleared)       |
+| Error (Firebase) | Criar conta    | No              | Visible (above button) |
+| Success          | —              | —               | — (page redirects)     |
 
 - Firebase error message placement: between the phone field and the submit button
 - Firebase error message lifecycle: cleared at the start of each new submit attempt; not cleared by
@@ -177,14 +183,14 @@ Document ID: `user.uid` (the authenticated Firebase user's UID, obtained from `a
 
 Fields written at signup:
 
-| Field         | Type      | Value                                                     | Condition              |
-|---------------|-----------|-----------------------------------------------------------|------------------------|
-| `displayName` | string    | value of the name field (as entered)                      | always                 |
-| `email`       | string    | value of the email field                                  | always                 |
-| `provider`    | string    | `"password"` (literal constant)                           | always                 |
-| `createdAt`   | timestamp | `serverTimestamp()` from Firebase                         | always                 |
-| `updatedAt`   | timestamp | `serverTimestamp()` from Firebase                         | always                 |
-| `phone`       | string    | value of the phone field (as entered)                     | only if phone non-empty |
+| Field         | Type      | Value                                 | Condition               |
+| ------------- | --------- | ------------------------------------- | ----------------------- |
+| `displayName` | string    | value of the name field (as entered)  | always                  |
+| `email`       | string    | value of the email field              | always                  |
+| `provider`    | string    | `"password"` (literal constant)       | always                  |
+| `createdAt`   | timestamp | `serverTimestamp()` from Firebase     | always                  |
+| `updatedAt`   | timestamp | `serverTimestamp()` from Firebase     | always                  |
+| `phone`       | string    | value of the phone field (as entered) | only if phone non-empty |
 
 - The document is written using the client SDK (`setDoc`) immediately after successful `createUserWithEmailAndPassword`.
 - This write is permitted by the security rules (users can create their own document).
@@ -219,30 +225,30 @@ restarts. No override is required by this feature.
 
 ## Tests
 
-| Caso de teste                                                         | Tipo        | ACs cobertos  |
-|-----------------------------------------------------------------------|-------------|---------------|
-| Validação de nome vazio                                               | Unit        | AC1           |
-| Validação de nome com menos de 2 chars                                | Unit        | AC2           |
-| Validação de nome com mais de 100 chars                               | Unit        | AC3           |
-| Validação de email vazio                                              | Unit        | AC4           |
-| Validação de email com formato inválido                               | Unit        | AC5           |
-| Validação de senha vazia                                              | Unit        | AC6           |
-| Validação de senha com menos de 6 chars                               | Unit        | AC7           |
-| Validação de confirmação de senha vazia                               | Unit        | AC8           |
-| Validação de confirmação diferente da senha                           | Unit        | AC9           |
-| Telefone vazio não gera erro de validação                             | Unit        | AC19          |
-| Telefone com formato inválido mostra "Telefone inválido"              | Unit        | AC20          |
-| Erro auth/email-already-in-use                                        | Integration | AC10          |
-| Erro auth/network-request-failed                                      | Integration | AC11          |
-| Erro auth/too-many-requests                                           | Integration | AC12          |
-| Erro auth/operation-not-allowed                                       | Integration | AC13          |
-| Erro genérico Firebase                                                | Integration | AC14          |
-| Estado de carregamento: botão desabilitado com label "Criando conta…" | Integration | AC15 (entry)  |
-| Estado de carregamento: botão reabilitado com label "Criar conta"     | Integration | AC15 (exit)   |
-| Signup bem-sucedido navega para /dashboard com replace                | Integration | AC16          |
-| Signup com telefone: documento Firestore inclui campo phone           | Integration | AC17, AC21    |
-| Signup sem telefone: documento Firestore omite campo phone            | Integration | AC17, AC21    |
-| Usuário autenticado em /signup → redirect com replace sem render form | Integration | AC18          |
+| Caso de teste                                                         | Tipo        | ACs cobertos |
+| --------------------------------------------------------------------- | ----------- | ------------ |
+| Validação de nome vazio                                               | Unit        | AC1          |
+| Validação de nome com menos de 2 chars                                | Unit        | AC2          |
+| Validação de nome com mais de 100 chars                               | Unit        | AC3          |
+| Validação de email vazio                                              | Unit        | AC4          |
+| Validação de email com formato inválido                               | Unit        | AC5          |
+| Validação de senha vazia                                              | Unit        | AC6          |
+| Validação de senha com menos de 6 chars                               | Unit        | AC7          |
+| Validação de confirmação de senha vazia                               | Unit        | AC8          |
+| Validação de confirmação diferente da senha                           | Unit        | AC9          |
+| Telefone vazio não gera erro de validação                             | Unit        | AC19         |
+| Telefone com formato inválido mostra "Telefone inválido"              | Unit        | AC20         |
+| Erro auth/email-already-in-use                                        | Integration | AC10         |
+| Erro auth/network-request-failed                                      | Integration | AC11         |
+| Erro auth/too-many-requests                                           | Integration | AC12         |
+| Erro auth/operation-not-allowed                                       | Integration | AC13         |
+| Erro genérico Firebase                                                | Integration | AC14         |
+| Estado de carregamento: botão desabilitado com label "Criando conta…" | Integration | AC15 (entry) |
+| Estado de carregamento: botão reabilitado com label "Criar conta"     | Integration | AC15 (exit)  |
+| Signup bem-sucedido navega para /dashboard com replace                | Integration | AC16         |
+| Signup com telefone: documento Firestore inclui campo phone           | Integration | AC17, AC21   |
+| Signup sem telefone: documento Firestore omite campo phone            | Integration | AC17, AC21   |
+| Usuário autenticado em /signup → redirect com replace sem render form | Integration | AC18         |
 
 ## Open questions
 

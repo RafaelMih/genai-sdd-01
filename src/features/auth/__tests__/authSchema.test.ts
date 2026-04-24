@@ -33,9 +33,7 @@ describe("authSchema", () => {
       password: "abc",
     });
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toBe(
-      "A senha deve ter pelo menos 6 caracteres"
-    );
+    expect(result.error?.issues[0].message).toBe("A senha deve ter pelo menos 6 caracteres");
   });
 
   it("valid data passes validation", () => {

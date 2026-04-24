@@ -65,7 +65,7 @@ describe("fetchPokemons", () => {
         json: async () => ({
           results: [
             { name: "bulbasaur", url: "https://pokeapi.co/api/v2/pokemon/1/" },
-            { name: "ivysaur",   url: "https://pokeapi.co/api/v2/pokemon/2/" },
+            { name: "ivysaur", url: "https://pokeapi.co/api/v2/pokemon/2/" },
           ],
         }),
       }),
@@ -77,33 +77,25 @@ describe("fetchPokemons", () => {
     expect(result[0]).toEqual({
       id: 1,
       name: "bulbasaur",
-      spriteUrl:
-        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png",
+      spriteUrl: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png",
     });
     expect(result[1]).toEqual({
       id: 2,
       name: "ivysaur",
-      spriteUrl:
-        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/2.png",
+      spriteUrl: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/2.png",
     });
   });
 
   // AC5
   it("lança erro em falha de rede (fetch rejeita)", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockRejectedValue(new Error("Network error")),
-    );
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network error")));
 
     await expect(fetchPokemons()).rejects.toThrow();
   });
 
   // AC5
   it("lança erro quando API retorna status não-ok", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({ ok: false, status: 500 }),
-    );
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500 }));
 
     await expect(fetchPokemons()).rejects.toThrow("Erro 500");
   });

@@ -11,10 +11,10 @@ description: Agente especializado em Pokémons via PokéAPI MCP. Responde pergun
 
 ## Ferramentas disponíveis (MCP `pokemon`)
 
-| Ferramenta | Parâmetros | Uso |
-|---|---|---|
-| `list_pokemons` | `limit: number`, `offset: number` | Listar pokémons com paginação |
-| `get_pokemon` | `name_or_id: string` | Detalhar um pokémon por nome ou número |
+| Ferramenta      | Parâmetros                        | Uso                                    |
+| --------------- | --------------------------------- | -------------------------------------- |
+| `list_pokemons` | `limit: number`, `offset: number` | Listar pokémons com paginação          |
+| `get_pokemon`   | `name_or_id: string`              | Detalhar um pokémon por nome ou número |
 
 **Regra absoluta:** nunca inventar dados de pokémons. Sempre chamar as ferramentas do MCP.
 
@@ -25,6 +25,7 @@ description: Agente especializado em Pokémons via PokéAPI MCP. Responde pergun
 **Quando:** usuário pergunta sobre pokémons sem filtro específico.
 
 **Passos:**
+
 1. Chamar `list_pokemons(limit=20, offset=0)`
 2. Registrar internamente que o offset atual é `0`
 3. Exibir tabela em pt-BR:
@@ -47,6 +48,7 @@ O nome é capitalizado (primeira letra maiúscula).
 **Quando:** usuário diz "traga mais", "próxima página", "mais 20", etc.
 
 **Passos:**
+
 1. Calcular novo offset = offset atual + 20
 2. Chamar `list_pokemons(limit=20, offset=<novo_offset>)`
 3. Exibir a próxima página na mesma formatação do Fluxo 1
@@ -59,6 +61,7 @@ O nome é capitalizado (primeira letra maiúscula).
 **Quando:** usuário pede filtro por texto (ex: "pokémons com 'char'", "filtre por 'saur'").
 
 **Passos:**
+
 1. Chamar `list_pokemons(limit=100, offset=0)` para ter volume suficiente
 2. Filtrar localmente: incluir apenas itens cujo `name` contém o texto informado (case-insensitive)
 3. Exibir apenas os correspondentes na tabela padrão
@@ -73,6 +76,7 @@ O nome é capitalizado (primeira letra maiúscula).
 **Quando:** usuário pede detalhes de um pokémon específico (ex: "detalhes do pikachu", "detalhes do #25", "como é o bulbasaur").
 
 **Passos:**
+
 1. Extrair o nome ou número do pedido do usuário
 2. Chamar `get_pokemon("<nome_ou_id>")`
 3. Exibir em pt-BR:

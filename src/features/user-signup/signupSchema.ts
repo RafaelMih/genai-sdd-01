@@ -18,10 +18,7 @@ export const signupSchema = z
     confirmPassword: z.string().min(1, "Confirmação de senha é obrigatória"),
     phone: z
       .string()
-      .refine(
-        (val) => !val || /^\+?[\d\s()-]{8,20}$/.test(val),
-        "Telefone inválido",
-      )
+      .refine((val) => !val || /^\+?[\d\s()-]{8,20}$/.test(val), "Telefone inválido")
       .optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {

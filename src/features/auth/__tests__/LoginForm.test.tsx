@@ -22,7 +22,7 @@ function renderForm() {
   render(
     <MemoryRouter>
       <LoginForm />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -54,9 +54,7 @@ describe("LoginForm — Firebase error messages", () => {
     fillForm("user@test.com", "wrongpass");
     submit();
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "E-mail ou senha incorretos."
-      )
+      expect(screen.getByRole("alert")).toHaveTextContent("E-mail ou senha incorretos."),
     );
   });
 
@@ -69,9 +67,7 @@ describe("LoginForm — Firebase error messages", () => {
     fillForm("unknown@test.com", "password123");
     submit();
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "E-mail ou senha incorretos."
-      )
+      expect(screen.getByRole("alert")).toHaveTextContent("E-mail ou senha incorretos."),
     );
   });
 
@@ -84,9 +80,7 @@ describe("LoginForm — Firebase error messages", () => {
     fillForm("user@test.com", "password123");
     submit();
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "E-mail ou senha incorretos."
-      )
+      expect(screen.getByRole("alert")).toHaveTextContent("E-mail ou senha incorretos."),
     );
   });
 
@@ -99,9 +93,7 @@ describe("LoginForm — Firebase error messages", () => {
     fillForm("user@test.com", "password123");
     submit();
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "Esta conta foi desativada."
-      )
+      expect(screen.getByRole("alert")).toHaveTextContent("Esta conta foi desativada."),
     );
   });
 
@@ -113,9 +105,7 @@ describe("LoginForm — Firebase error messages", () => {
     renderForm();
     fillForm("user@test.com", "password123");
     submit();
-    await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Muitas tentativas.")
-    );
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Muitas tentativas."));
   });
 
   // AC8
@@ -126,9 +116,7 @@ describe("LoginForm — Firebase error messages", () => {
     renderForm();
     fillForm("user@test.com", "password123");
     submit();
-    await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Falha na conexão.")
-    );
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Falha na conexão."));
   });
 
   // AC9
@@ -140,9 +128,7 @@ describe("LoginForm — Firebase error messages", () => {
     fillForm("user@test.com", "password123");
     submit();
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "Ocorreu um erro inesperado."
-      )
+      expect(screen.getByRole("alert")).toHaveTextContent("Ocorreu um erro inesperado."),
     );
   });
 
@@ -154,22 +140,16 @@ describe("LoginForm — Firebase error messages", () => {
     renderForm();
     fillForm("user@test.com", "password123");
     submit();
-    await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("E-mail inválido")
-    );
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("E-mail inválido"));
   });
 
   // AC10 — redirect uses replace semantics
   it("successful login navigates to /dashboard with replace", async () => {
-    vi.spyOn(authService, "signIn").mockResolvedValueOnce(
-      {} as UserCredential
-    );
+    vi.spyOn(authService, "signIn").mockResolvedValueOnce({} as UserCredential);
     renderForm();
     fillForm("user@test.com", "password123");
     submit();
-    await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith("/dashboard", { replace: true })
-    );
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/dashboard", { replace: true }));
   });
 
   // AC11 entry — button disabled and shows loading label during request
@@ -178,15 +158,13 @@ describe("LoginForm — Firebase error messages", () => {
     vi.spyOn(authService, "signIn").mockReturnValueOnce(
       new Promise<UserCredential>((r) => {
         resolveSignIn = r;
-      })
+      }),
     );
     renderForm();
     fillForm("user@test.com", "password123");
     submit();
 
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: /entrando/i })).toBeDisabled()
-    );
+    await waitFor(() => expect(screen.getByRole("button", { name: /entrando/i })).toBeDisabled());
 
     await act(async () => {
       resolveSignIn({} as UserCredential);
@@ -203,7 +181,7 @@ describe("LoginForm — Firebase error messages", () => {
     submit();
 
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: /^entrar$/i })).not.toBeDisabled()
+      expect(screen.getByRole("button", { name: /^entrar$/i })).not.toBeDisabled(),
     );
   });
 });
