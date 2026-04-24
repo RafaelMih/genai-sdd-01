@@ -18,3 +18,7 @@
 ## v1.0.0
 
 - Initial feature spec
+
+## Archived specs
+
+- Historical specs moved to `specs/archive/user-logout/`: spec-v1.0.0.md

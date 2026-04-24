@@ -180,6 +180,7 @@ This folder contains the ${featureName} feature implementation.
     type: "feature";
     feature: string;
     version: string;
+    status: "active";
     dependsOn: string[];
   };
 
@@ -195,6 +196,7 @@ This folder contains the ${featureName} feature implementation.
     type: "feature",
     feature: featureName,
     version,
+    status: "active",
     dependsOn: [],
   };
 

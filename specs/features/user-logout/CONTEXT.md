@@ -58,13 +58,13 @@ Allow an authenticated user to end their Firebase Auth session. After logout, th
 
 ## Tests
 
-| Caso de teste                                                       | Tipo        | ACs cobertos |
-| ------------------------------------------------------------------- | ----------- | ------------ |
-| Clicar no botão chama `signOut(auth)`                               | Unit        | AC1          |
-| Botão mostra "Saindo..." e fica desabilitado durante o `signOut`    | Integration | AC2          |
-| Logout bem-sucedido navega para /login com replace                  | Integration | AC3          |
-| Após logout, `useAuthState` retorna null                            | Integration | AC4          |
-| Falha no `signOut`: mostra "Erro ao sair da conta." abaixo do botão | Integration | AC5          |
-| Falha no `signOut`: botão reabilitado com label "Sair"              | Integration | AC5          |
-| Browser back de /login após logout não retorna à página de origem   | Integration | AC6          |
-| `auth/network-request-failed` -> "Erro de conexão. Tente novamente."| Unit        | AC5          |
+| Caso de teste                                                        | Tipo        | ACs cobertos |
+| -------------------------------------------------------------------- | ----------- | ------------ |
+| Clicar no botão chama `signOut(auth)`                                | Unit        | AC1          |
+| Botão mostra "Saindo..." e fica desabilitado durante o `signOut`     | Integration | AC2          |
+| Logout bem-sucedido navega para /login com replace                   | Integration | AC3          |
+| Após logout, `useAuthState` retorna null                             | Integration | AC4          |
+| Falha no `signOut`: mostra "Erro ao sair da conta." abaixo do botão  | Integration | AC5          |
+| Falha no `signOut`: botão reabilitado com label "Sair"               | Integration | AC5          |
+| Browser back de /login após logout não retorna à página de origem    | Integration | AC6          |
+| `auth/network-request-failed` -> "Erro de conexão. Tente novamente." | Unit        | AC5          |

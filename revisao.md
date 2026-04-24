@@ -1,106 +1,114 @@
 # Revisao do Projeto
 
-O projeto está em um estado consistente e já entrega um fluxo real de estudo para GenAI com SDD. A base está forte em specs versionadas, traceabilidade, testes, contexto curto por feature, validações automáticas e governança mínima de custo de contexto. O trabalho recente consolidou o projeto em torno de uma ideia mais clara: usar specs como contrato principal e reduzir o custo cognitivo da IA com contexto curto, retrieval resumido e validações de drift.
+O projeto entrou em um estado mais maduro e operacional. Agora ele nao tem apenas SDD, traceabilidade e contexto curto: ele tambem opera com arquivamento de specs antigas, cache local de contexto, telemetria mais rica, policy de budget documentada e uma suite E2E enxuta para jornadas criticas.
 
-## Revalidação atual do repositório
+## Revalidacao atual do repositorio
 
 - `npm run spec:check`: passou
-- `npm run spec:lint`: passou sem warnings
 - `npm run typecheck`: passou
 - `npm run test`: passou com 11 arquivos e 68 testes
+- `npm run e2e`: passou com 3 testes
 - `npm run context:report`: passou
+- `npm run specs:archive`: executado e arquivou specs superseded
 
 ## Estado atual do projeto
 
-Hoje o repositório já possui:
+Hoje o repositorio ja possui:
 
 - specs versionadas por feature
 - `TRACEABILITY.md` por feature
-- `CONTEXT.md` canônico por feature
-- MCP próprio para recuperação de specs e agente especializado
+- `CONTEXT.md` canonico por feature
+- working set ativo mais enxuto apos arquivamento real
+- MCP proprio para recuperacao de specs e agente especializado
 - loader de contexto com budget
-- telemetria básica de contexto
+- cache local de contexto
+- telemetria de contexto com duracao, cache hit e budget warning
 - checagem de cobertura de AC
-- checagem de drift técnico
-- instruções globais consolidadas
+- checagem de drift tecnico
+- suite E2E para login, signup e logout
+- instrucoes globais consolidadas
 
-Isso coloca o projeto acima de um simples “template com boas intenções”. Já existe um fluxo operacional que ajuda a reduzir ambiguidade e tokens desperdiçados.
+Isso coloca o projeto acima de um template de estudo. Ja existe um fluxo pratico para reduzir ambiguidade, tokens desperdicados e ruido historico no dia a dia.
 
 ## Tabela de conceitos
 
-| Conceito | Status atual | Evidência no projeto | Leitura prática |
-| --- | --- | --- | --- |
-| Spec-Driven Development | Usado | `CLAUDE.md`, `scripts/spec-lint.ts` | É a espinha dorsal do projeto |
-| Specs versionadas por feature | Usado | `specs/features/*/spec-vX.Y.Z.md` | Evolução controlada e auditável |
-| Status gate (`Approved`) | Usado | `scripts/spec-status.ts` | Implementação protegida por aprovação |
-| Traceability AC -> código -> teste | Usado | `specs/features/*/TRACEABILITY.md` | Convenção consistente e validada |
-| Testes alinhados com AC | Usado | `src/features/**/__tests__` + `TRACEABILITY.md` | Robusto e auditável |
-| ADR | Usado | `specs/decisions/ADR-001-use-firebase.md` | Arquitetura formalizada |
-| Contratos técnicos/documentais | Usado | specs técnicas e contracts nas features | Boa redução de ambiguidade |
-| MCP próprio | Usado | `mcp/spec-rag-mcp.ts`, `mcp/pokemon-mcp.ts` | Bom para estudo de agentes e ferramentas |
-| RAG de specs por manifesto/chunks | Usado | `scripts/index-specs.ts`, `scripts/ai-context.ts`, `mcp/spec-rag-mcp.ts` | Está enxuto, resumido e reindexado |
-| Agente especializado | Usado | `.claude/agents/pokemon-agent.md` | Bom exemplo de agent-as-contract |
-| Reconcile drift | Usado parcialmente | `.claude/skills/reconcile-drift/SKILL.md` | Skill atualizada para `CONTEXT.md`, mas ainda sem automação dedicada |
-| Pré-commit de governança | Usado | `scripts/precommit-spec.ts` | Usa pipeline consolidado |
-| Cobertura automática de AC por teste | Usado | `scripts/spec-ac-coverage.ts`, `spec:check` | Já está no pipeline principal |
-| Detecção automática de drift técnico | Usado | `scripts/spec-drift.ts`, `spec:check` | Já está no pipeline principal |
-| Budget de contexto | Usado | `scripts/ai-context.ts` | Há limite de chunks e tokens |
-| Resumo de specs sob demanda | Usado | `mcp/spec-rag-mcp.ts` com `detail: "summary"` padrão | Reduz custo por request |
-| Resumo canônico por feature (`CONTEXT.md`) | Usado | `specs/features/*/CONTEXT.md`, `scripts/generate-feature-contexts.ts` | Reduz leitura desnecessária de specs longas |
-| Telemetria de custo de contexto | Usado parcialmente | `.telemetry/context-usage.jsonl`, `scripts/context-telemetry-report.ts` | Mede eventos, tokens estimados e volume servido |
-| Consolidação de instruções globais | Usado | `.claude/GLOBAL-STANDARDS.md`, `README.md`, `.claude/rules/*.md` | Menos duplicação entre docs globais |
-| Estratégia para histórico de specs | Usado | `specs/HISTORY.md` | Há política explícita para arquivamento |
-| E2E real | Não usado | Não há suíte E2E no repositório | Ainda é uma lacuna relevante |
-| Cache de contexto ou prompt caching explícito | Não usado | Não há camada de cache semântico | Oportunidade de economia adicional |
-| Política formal de budget por tarefa | Não usado plenamente | Há budget e telemetria, mas não regra operacional por fluxo | Falta fechar o ciclo de governança |
-| Matriz realmente enxuta de active spec only | Usado parcialmente | Ainda coexistem muitas versões no diretório ativo | Melhorou, mas ainda pode ficar mais rígido |
+| Conceito                                    | Status atual       | Evidencia no projeto                                                     | Leitura pratica                                           |
+| ------------------------------------------- | ------------------ | ------------------------------------------------------------------------ | --------------------------------------------------------- |
+| Spec-Driven Development                     | Usado              | `CLAUDE.md`, `scripts/spec-lint.ts`                                      | Continua sendo a base do projeto                          |
+| Specs versionadas por feature               | Usado              | `specs/features/*/spec-vX.Y.Z.md` e `specs/archive/*`                    | Evolucao controlada com historico separado                |
+| Status gate (`Approved`)                    | Usado              | `scripts/spec-status.ts`                                                 | Implementacao protegida por aprovacao                     |
+| Traceability AC -> codigo -> teste          | Usado              | `specs/features/*/TRACEABILITY.md`                                       | Convencao consistente e validada                          |
+| Testes alinhados com AC                     | Usado              | `src/features/**/__tests__` + `TRACEABILITY.md`                          | Robusto e auditavel                                       |
+| ADR                                         | Usado              | `specs/decisions/ADR-001-use-firebase.md`                                | Arquitetura formalizada                                   |
+| Contratos tecnicos/documentais              | Usado              | specs tecnicas e contracts nas features                                  | Boa reducao de ambiguidade                                |
+| MCP proprio                                 | Usado              | `mcp/spec-rag-mcp.ts`, `mcp/pokemon-mcp.ts`                              | Bom para estudo de agentes e ferramentas                  |
+| RAG de specs por manifesto/chunks           | Usado              | `scripts/index-specs.ts`, `scripts/ai-context.ts`, `mcp/spec-rag-mcp.ts` | Esta enxuto, resumido e agora ignora arquivo historico    |
+| Agente especializado                        | Usado              | `.claude/agents/pokemon-agent.md`                                        | Bom exemplo de agent-as-contract                          |
+| Reconcile drift                             | Usado parcialmente | `.claude/skills/reconcile-drift/SKILL.md`                                | Skill alinhada ao contexto curto e ao working set ativo   |
+| Pre-commit de governanca                    | Usado              | `scripts/precommit-spec.ts`                                              | Usa pipeline consolidado                                  |
+| Cobertura automatica de AC por teste        | Usado              | `scripts/spec-ac-coverage.ts`, `spec:check`                              | Ja esta no pipeline principal                             |
+| Deteccao automatica de drift tecnico        | Usado              | `scripts/spec-drift.ts`, `spec:check`                                    | Ja esta no pipeline principal                             |
+| Budget de contexto                          | Usado              | `scripts/ai-context.ts`, `mcp/spec-rag-mcp.ts`                           | Ha limite por modo e warning nao bloqueante               |
+| Resumo de specs sob demanda                 | Usado              | `mcp/spec-rag-mcp.ts` com `detail: "summary"` padrao                     | Reduz custo por request                                   |
+| Resumo canonico por feature (`CONTEXT.md`)  | Usado              | `specs/features/*/CONTEXT.md`, `scripts/generate-feature-contexts.ts`    | Reduz leitura desnecessaria de specs longas               |
+| Telemetria de custo de contexto             | Usado              | `.telemetry/context-usage.jsonl`, `scripts/context-telemetry-report.ts`  | Mede tokens estimados, duracao, cache hit e warnings      |
+| Cache local de contexto                     | Usado              | `scripts/context-cache.ts`, `.telemetry/cache/context/`                  | Evita reprocessamento quando os arquivos nao mudam        |
+| Consolidacao de instrucoes globais          | Usado              | `.claude/GLOBAL-STANDARDS.md`, `README.md`, `.claude/rules/*.md`         | Menos duplicacao entre docs globais                       |
+| Estrategia para historico de specs          | Usado              | `specs/HISTORY.md`, `scripts/specs-archive.ts`, `specs/archive/*`        | Politica e execucao operacionalizadas                     |
+| E2E real                                    | Usado              | `playwright.config.ts`, `e2e/auth-flows.spec.ts`                         | Cobertura enxuta para jornadas criticas                   |
+| Politica formal de budget por tarefa        | Usado parcialmente | `README.md`, `.claude/GLOBAL-STANDARDS.md`, scripts de contexto          | Ha regra operacional, mas ainda sem enforcement por fluxo |
+| Matriz realmente enxuta de active spec only | Usado              | `specs/archive/*`, loaders filtrando `archived`                          | O working set ativo ficou bem mais limpo                  |
+| Cache semantico distribuido                 | Nao usado          | Cache atual e local por arquivo/mtime                                    | Pode evoluir depois se o projeto crescer                  |
 
 ## Sinais concretos de maturidade
 
-1. O `spec:lint` passou sem warnings, o que reduz bastante interpretação extra da IA.
-2. O `spec:check` já cobre lint, status, traceabilidade, cobertura de AC e drift técnico.
-3. As skills passaram a tratar `CONTEXT.md` como primeira camada de contexto.
-4. O produto agora tem uma separação mais saudável entre contexto curto (`CONTEXT.md`) e contexto detalhado (spec completa).
-5. A telemetria já está funcional e mostra uso real do fluxo de contexto.
+1. O working set ativo encolheu de verdade apos mover specs superseded para `specs/archive/`.
+2. O `spec:check` cobre lint, status, traceabilidade, cobertura e drift tecnico.
+3. O fluxo de contexto ja gera cache hit e registra telemetria operacional.
+4. As skills e docs passaram a tratar `CONTEXT.md` como primeira camada e `summary` como modo preferencial.
+5. O produto agora tem validacao E2E minima para signup, login e logout.
 
 ## Estado atual do custo de contexto
 
-Já existe um primeiro ciclo funcional de controle:
+Ja existe um ciclo funcional mais completo de controle:
 
 - contexto curto por feature (`CONTEXT.md`)
-- budget no loader de chunks
-- modo resumido por padrão no MCP
-- telemetria de uso
-- relatório de consumo estimado
+- budget por modo (`summary`, `chunked`, `full`)
+- warnings nao bloqueantes quando o budget recomendado e excedido
+- cache local por feature, versao, modo e arquivos-fonte
+- telemetria com duracao, cache hit, origem e tokens estimados
+- relatorio consolidado via `npm run context:report`
 
-Estado observado na última revalidação:
+Estado observado na ultima revalidacao:
 
-- `npm run context:report` reportou 2 eventos
-- Total registrado: 533 tokens estimados
-- Total servido: 18 chunks/documentos
-- Todas as chamadas registradas até agora foram em modo resumido/chunked, sem uso de `full`
+- `npm run context:report` reportou 4 eventos
+- Total registrado: 1143 tokens estimados
+- Total servido: 36 chunks/documentos
+- Cache hits: 1
+- Budget warnings: 0
+- Todas as chamadas recentes ficaram em modo `summary`/`chunked`, sem uso de `full`
 
-Isso é um bom sinal: o projeto já está conseguindo operar sem depender de contexto completo por padrão.
+Isso e um bom sinal: o projeto esta conseguindo reaproveitar contexto e operar com budget controlado sem depender de documentos completos.
 
-## O que ainda merece atenção
+## O que ainda merece atencao
 
-1. O projeto ainda não possui E2E real para jornadas críticas.
-2. A telemetria atual mede volume estimado, mas ainda não mede duração por etapa, origem da tarefa ou custo por fluxo.
-3. As versões antigas de specs continuam convivendo nas pastas ativas; a estratégia de histórico existe, mas ainda não foi operacionalizada.
-4. Ainda não há cache semântico explícito ou política de reutilização de contexto entre tarefas parecidas.
+1. A telemetria ainda pode crescer para incluir custo por sessao, por tarefa e por comando de ponta a ponta.
+2. O cache atual e local e simples; ainda nao existe uma camada semantica mais inteligente.
+3. A politica de budget ja existe, mas ainda funciona mais como orientacao do que como governanca forte.
+4. O manifest historico ainda pode ficar mais automatizado para refletir todas as versoes arquivadas em todos os casos.
 
 ## Melhorias recomendadas agora
 
-1. Operacionalizar o arquivamento das specs antigas mais estáveis para `specs/archive/`.
-2. Expandir a telemetria para incluir duração, modo, origem do comando e talvez feature por sessão.
-3. Adicionar uma pequena suíte E2E para pelo menos login, signup e logout.
-4. Avaliar cache de contexto para features acessadas repetidamente.
-5. Definir uma política formal de budget por tarefa ou por modo de execução.
+1. Evoluir a telemetria para correlacionar sessao, tarefa e feature com mais granularidade.
+2. Refinar o arquivamento para manter manifest e changelog ainda mais sincronizados em cenarios edge-case.
+3. Adicionar E2E para variacoes negativas relevantes, como erro de login e redirect de usuario autenticado.
+4. Avaliar cache semantico ou reuse mais inteligente para features acessadas repetidamente.
+5. Formalizar um budget por tipo de tarefa com metas explicitas para `summary`, `chunked` e `full`.
 
 ## Prioridade sugerida
 
-1. Arquivar specs antigas superseded mais estáveis.
-2. Evoluir a telemetria de contexto para métricas mais operacionais.
-3. Adicionar E2E das jornadas críticas.
-4. Avaliar cache semântico e reuse de contexto.
-5. Formalizar budget por tarefa no workflow.
+1. Evoluir a telemetria de contexto para metricas mais operacionais.
+2. Refinar o ciclo de cache/reuse de contexto.
+3. Expandir E2E das jornadas criticas com cenarios negativos.
+4. Fortalecer a automacao do historico e do manifest.
+5. Fechar a governanca de budget por tipo de tarefa.

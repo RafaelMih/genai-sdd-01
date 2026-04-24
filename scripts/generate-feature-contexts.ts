@@ -55,7 +55,11 @@ function getSections(markdown: string): Map<string, string> {
   return sections;
 }
 
-function buildContextMarkdown(feature: string, specFileName: string, sections: Map<string, string>): string {
+function buildContextMarkdown(
+  feature: string,
+  specFileName: string,
+  sections: Map<string, string>,
+): string {
   const preferredOrder = [
     "Objective",
     "Scope",
@@ -81,7 +85,9 @@ ${summarySections.join("\n\n")}
 `;
 }
 
-async function findLatestSpec(featureDir: string): Promise<{ fileName: string; version: VersionTuple } | null> {
+async function findLatestSpec(
+  featureDir: string,
+): Promise<{ fileName: string; version: VersionTuple } | null> {
   const entries = await readdir(featureDir, { withFileTypes: true });
   const candidates: Array<{ fileName: string; version: VersionTuple }> = [];
 

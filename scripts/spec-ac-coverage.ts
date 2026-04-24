@@ -54,7 +54,9 @@ function getLatestFeatureSpecs(): SpecInfo[] {
     }
   }
 
-  return [...latestByFeature.values()].sort((left, right) => left.feature.localeCompare(right.feature));
+  return [...latestByFeature.values()].sort((left, right) =>
+    left.feature.localeCompare(right.feature),
+  );
 }
 
 function extractAcceptanceCriteria(specText: string): string[] {

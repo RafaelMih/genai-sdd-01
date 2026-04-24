@@ -78,10 +78,10 @@ Navigation is performed via the router's `navigate` function (not a hard page re
 
 ## Error messages contract
 
-| Firebase error code           | Message displayed                  |
-| ----------------------------- | ---------------------------------- |
-| `auth/network-request-failed` | Erro de conexão. Tente novamente.  |
-| (all other codes)             | Erro ao sair da conta.             |
+| Firebase error code           | Message displayed                 |
+| ----------------------------- | --------------------------------- |
+| `auth/network-request-failed` | Erro de conexão. Tente novamente. |
+| (all other codes)             | Erro ao sair da conta.            |
 
 > The error code is read from the `code` property (type: `string`) of the Firebase `AuthError`
 > object thrown by `signOut`. If the thrown error does not have a `code` property, the default
@@ -106,16 +106,16 @@ No additional localStorage or cookie cleanup is required by this feature. App-le
 
 ## Tests
 
-| Caso de teste                                                       | Tipo        | ACs cobertos |
-| ------------------------------------------------------------------- | ----------- | ------------ |
-| Clicar no botão chama `signOut(auth)`                               | Unit        | AC1          |
-| Botão mostra "Saindo..." e fica desabilitado durante o `signOut`    | Integration | AC2          |
-| Logout bem-sucedido navega para /login com replace                  | Integration | AC3          |
-| Após logout, `useAuthState` retorna null                            | Integration | AC4          |
-| Falha no `signOut`: mostra "Erro ao sair da conta." abaixo do botão | Integration | AC5          |
-| Falha no `signOut`: botão reabilitado com label "Sair"              | Integration | AC5          |
-| Browser back de /login após logout não retorna à página de origem   | Integration | AC6          |
-| `auth/network-request-failed` -> "Erro de conexão. Tente novamente."| Unit        | AC5          |
+| Caso de teste                                                        | Tipo        | ACs cobertos |
+| -------------------------------------------------------------------- | ----------- | ------------ |
+| Clicar no botão chama `signOut(auth)`                                | Unit        | AC1          |
+| Botão mostra "Saindo..." e fica desabilitado durante o `signOut`     | Integration | AC2          |
+| Logout bem-sucedido navega para /login com replace                   | Integration | AC3          |
+| Após logout, `useAuthState` retorna null                             | Integration | AC4          |
+| Falha no `signOut`: mostra "Erro ao sair da conta." abaixo do botão  | Integration | AC5          |
+| Falha no `signOut`: botão reabilitado com label "Sair"               | Integration | AC5          |
+| Browser back de /login após logout não retorna à página de origem    | Integration | AC6          |
+| `auth/network-request-failed` -> "Erro de conexão. Tente novamente." | Unit        | AC5          |
 
 ## Open questions
 

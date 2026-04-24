@@ -67,15 +67,15 @@ Allow users to sign in with an existing account using email and password.
 ## Error messages contract
 
 | Firebase error code         | Mensagem exibida ao usuário (pt-BR)                         |
-| --------------------------- | ---------------------------------------------------------- |
-| auth/user-not-found         | E-mail ou senha incorretos.                                |
-| auth/wrong-password         | E-mail ou senha incorretos.                                |
-| auth/invalid-credential     | E-mail ou senha incorretos.                                |
-| auth/invalid-email          | E-mail inválido                                            |
-| auth/user-disabled          | Esta conta foi desativada. Entre em contato com o suporte. |
-| auth/too-many-requests      | Muitas tentativas. Tente novamente mais tarde.             |
-| auth/network-request-failed | Falha na conexão. Verifique sua internet e tente novamente.|
-| (todos os demais)           | Ocorreu um erro inesperado. Tente novamente.               |
+| --------------------------- | ----------------------------------------------------------- |
+| auth/user-not-found         | E-mail ou senha incorretos.                                 |
+| auth/wrong-password         | E-mail ou senha incorretos.                                 |
+| auth/invalid-credential     | E-mail ou senha incorretos.                                 |
+| auth/invalid-email          | E-mail inválido                                             |
+| auth/user-disabled          | Esta conta foi desativada. Entre em contato com o suporte.  |
+| auth/too-many-requests      | Muitas tentativas. Tente novamente mais tarde.              |
+| auth/network-request-failed | Falha na conexão. Verifique sua internet e tente novamente. |
+| (todos os demais)           | Ocorreu um erro inesperado. Tente novamente.                |
 
 > `auth/user-not-found` e `auth/wrong-password` mapeiam para a mesma mensagem intencionalmente
 > para evitar enumeração de contas.
@@ -111,10 +111,10 @@ Allow users to sign in with an existing account using email and password.
 
 ## Redirect contract
 
-| Trigger                    | Source | Destination | Semantics | Mechanism                                                                          | Browser back from destination |
-| -------------------------- | ------ | ----------- | --------- | ---------------------------------------------------------------------------------- | ----------------------------- |
-| Successful sign-in         | /login | /dashboard  | `replace` | Direct `navigate` call in `LoginForm` submit handler (not via `onAuthStateChanged`)| Does not return to /login     |
-| User already authenticated | /login | /dashboard  | `replace` | `onAuthStateChanged` observer in `LoginPage` (page-mount detection only)           | Does not return to /login     |
+| Trigger                    | Source | Destination | Semantics | Mechanism                                                                           | Browser back from destination |
+| -------------------------- | ------ | ----------- | --------- | ----------------------------------------------------------------------------------- | ----------------------------- |
+| Successful sign-in         | /login | /dashboard  | `replace` | Direct `navigate` call in `LoginForm` submit handler (not via `onAuthStateChanged`) | Does not return to /login     |
+| User already authenticated | /login | /dashboard  | `replace` | `onAuthStateChanged` observer in `LoginPage` (page-mount detection only)            | Does not return to /login     |
 
 Both redirects use the router's `navigate` function (not a hard page reload).
 

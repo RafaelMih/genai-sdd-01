@@ -4,7 +4,13 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
+import {
+  buildContextCacheKey,
+  readContextCache,
+  writeContextCache,
+} from "../scripts/context-cache.js";
 import { recordContextTelemetry } from "../scripts/context-telemetry.js";
 
 type SpecManifestEntry = {
@@ -13,14 +19,17 @@ type SpecManifestEntry = {
   type: "product" | "technical" | "decision" | "feature";
   feature?: string;
   version?: string;
+  status?: "active" | "superseded" | "archived";
   dependsOn?: string[];
 };
 
 const MANIFEST_PATH = path.resolve("specs", ".index", "spec-manifest.json");
+const SUMMARY_BUDGET_TOKENS = 1400;
+const FULL_BUDGET_TOKENS = 4000;
 
 async function loadManifest(): Promise<SpecManifestEntry[]> {
   const raw = await readFile(MANIFEST_PATH, "utf8");
-  return JSON.parse(raw) as SpecManifestEntry[];
+  return (JSON.parse(raw) as SpecManifestEntry[]).filter((entry) => entry.status !== "archived");
 }
 
 async function readSpecFile(relativePath: string): Promise<string> {
@@ -102,9 +111,7 @@ function buildSummary(entry: SpecManifestEntry, content: string): string {
       : ["Decision", "Consequences", "Collections", "Dependencies", "Context"];
 
   const preferred = sections.filter((section) =>
-    preferredHeadings.some(
-      (heading) => heading.toLowerCase() === section.heading.toLowerCase(),
-    ),
+    preferredHeadings.some((heading) => heading.toLowerCase() === section.heading.toLowerCase()),
   );
 
   const selectedSections = (preferred.length > 0 ? preferred : sections.slice(0, 4)).slice(0, 6);
@@ -113,9 +120,7 @@ function buildSummary(entry: SpecManifestEntry, content: string): string {
     return content.trim();
   }
 
-  return selectedSections
-    .map((section) => `## ${section.heading}\n${section.body}`)
-    .join("\n\n");
+  return selectedSections.map((section) => `## ${section.heading}\n${section.body}`).join("\n\n");
 }
 
 async function retrieveRelevantSpecs(
@@ -123,6 +128,8 @@ async function retrieveRelevantSpecs(
   version?: string,
   detail: "summary" | "full" = "summary",
 ) {
+  const invocationId = randomUUID();
+  const startedAt = Date.now();
   const manifest = await loadManifest();
   const ranked = rankEntries(manifest, feature, version);
 
@@ -135,6 +142,39 @@ async function retrieveRelevantSpecs(
   const relatedIds = new Set<string>([featureSpec.id, ...(featureSpec.dependsOn ?? [])]);
   const relatedEntries = manifest.filter((entry) => relatedIds.has(entry.id));
   const featureContext = await readFeatureContext(feature);
+  const cacheFiles = [MANIFEST_PATH, ...relatedEntries.map((entry) => path.resolve(entry.path))];
+  if (featureContext) {
+    cacheFiles.push(path.resolve("specs", "features", feature, "CONTEXT.md"));
+  }
+
+  const cacheKey = await buildContextCacheKey({
+    feature,
+    version: featureSpec.version ?? version ?? null,
+    mode: detail,
+    files: cacheFiles,
+  });
+  const cached = await readContextCache(cacheKey);
+
+  if (cached) {
+    await recordContextTelemetry({
+      invocationId,
+      timestamp: new Date().toISOString(),
+      source: "spec-rag-mcp",
+      origin: "retrieve_relevant_specs",
+      feature,
+      version: featureSpec.version ?? version ?? null,
+      mode: detail,
+      status: "cached",
+      durationMs: Date.now() - startedAt,
+      chunkCount: Number(cached.metadata.chunkCount ?? 0),
+      estimatedTokens: Number(cached.metadata.estimatedTokens ?? 0),
+      budgetLimit: Number(cached.metadata.budgetLimit ?? 0),
+      budgetExceeded: Boolean(cached.metadata.budgetExceeded),
+      cacheKey,
+      relatedSpecs: [...relatedIds],
+    });
+    return cached.content;
+  }
 
   const documents = await Promise.all(
     relatedEntries.map(async (entry) => ({
@@ -153,23 +193,42 @@ Version: ${entry.version ?? null}
 ${detail === "full" ? content : buildSummary(entry, content)}`,
     )
     .join("\n\n---\n\n");
-
-  await recordContextTelemetry({
-    timestamp: new Date().toISOString(),
-    source: "spec-rag-mcp",
-    feature,
-    version: featureSpec.version ?? version ?? null,
-    mode: detail,
-    chunkCount: documents.length + (featureContext ? 1 : 0),
-    estimatedTokens: Math.ceil(payload.split(/\s+/).filter(Boolean).length * 1.3),
-    relatedSpecs: [...relatedIds],
-  });
+  const estimatedTokens = Math.ceil(payload.split(/\s+/).filter(Boolean).length * 1.3);
+  const budgetLimit = detail === "full" ? FULL_BUDGET_TOKENS : SUMMARY_BUDGET_TOKENS;
+  const budgetExceeded = estimatedTokens > budgetLimit;
 
   if (!featureContext) {
+    await writeContextCache({
+      cacheKey,
+      content: payload,
+      metadata: {
+        chunkCount: documents.length,
+        estimatedTokens,
+        budgetLimit,
+        budgetExceeded,
+      },
+    });
+    await recordContextTelemetry({
+      invocationId,
+      timestamp: new Date().toISOString(),
+      source: "spec-rag-mcp",
+      origin: "retrieve_relevant_specs",
+      feature,
+      version: featureSpec.version ?? version ?? null,
+      mode: detail,
+      status: budgetExceeded ? "warning" : "generated",
+      durationMs: Date.now() - startedAt,
+      chunkCount: documents.length,
+      estimatedTokens,
+      budgetLimit,
+      budgetExceeded,
+      cacheKey,
+      relatedSpecs: [...relatedIds],
+    });
     return payload;
   }
 
-  return `# feature-context
+  const output = `# feature-context
 Path: specs/features/${feature}/CONTEXT.md
 Type: feature-context
 Version: ${featureSpec.version ?? null}
@@ -179,6 +238,36 @@ ${featureContext}
 ---
 
 ${payload}`;
+
+  await writeContextCache({
+    cacheKey,
+    content: output,
+    metadata: {
+      chunkCount: documents.length + 1,
+      estimatedTokens,
+      budgetLimit,
+      budgetExceeded,
+    },
+  });
+  await recordContextTelemetry({
+    invocationId,
+    timestamp: new Date().toISOString(),
+    source: "spec-rag-mcp",
+    origin: "retrieve_relevant_specs",
+    feature,
+    version: featureSpec.version ?? version ?? null,
+    mode: detail,
+    status: budgetExceeded ? "warning" : "generated",
+    durationMs: Date.now() - startedAt,
+    chunkCount: documents.length + 1,
+    estimatedTokens,
+    budgetLimit,
+    budgetExceeded,
+    cacheKey,
+    relatedSpecs: [...relatedIds],
+  });
+
+  return output;
 }
 
 const server = new McpServer({

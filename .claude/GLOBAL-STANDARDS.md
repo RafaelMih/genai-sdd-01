@@ -10,6 +10,7 @@ When other docs repeat the same topic, prefer this file as the source of truth.
 - If the spec is ambiguous, incomplete, or not testable, stop and report the issue.
 - Keep changes feature-scoped and map behavior to acceptance criteria.
 - Every feature must keep spec, tasks, changelog, `TRACEABILITY.md`, and `CONTEXT.md`.
+- Archived specs live in `specs/archive/<feature>/` and are outside the default working set.
 
 ## Architecture
 
@@ -39,3 +40,8 @@ When other docs repeat the same topic, prefer this file as the source of truth.
 - Load the active feature context before expanding to full specs.
 - Prefer `CONTEXT.md` plus targeted sections over full-document loading.
 - Use full spec retrieval only when the short context is insufficient.
+- `summary` is the default retrieval mode; `full` should be explicit and exceptional.
+- `chunked` context should stay within the configured chunk/token budget whenever possible.
+- Budget overages are warning-only for now, but they must be reported via telemetry.
+- Repeated context retrieval should prefer the local cache when source files have not changed.
+- Run `npm run specs:archive` periodically so superseded specs do not leak into the active mental model.

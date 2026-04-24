@@ -48,9 +48,12 @@ Optional input when version is provided:
 
 - ALWAYS call `retrieve_relevant_specs` first.
 - Prefer the `summary` detail mode first and expand to `full` only if the short context is insufficient.
+- Treat `summary` as the default budget-safe mode and escalate to `full` only when required by a concrete missing detail.
 - If `version` is provided, it MUST be passed to the tool.
 - ONLY use specs returned by RAG as source of truth.
 - Prefer `specs/features/<feature>/CONTEXT.md` plus targeted spec sections over loading full documents by default.
+- Archived specs in `specs/archive/` are outside the default working set and MUST be ignored unless the task is explicitly historical.
+- Respect cache and budget signals from the context tooling; warnings are not blockers, but they must shape retrieval choices.
 - ONLY proceed if the main feature spec contains `Status: Approved`.
 - If status is missing or not `Approved` → STOP.
 - If the spec has `Open questions` with unresolved implementation decisions → STOP.
@@ -91,6 +94,7 @@ specs/features/<feature>/
 1. Call `retrieve_relevant_specs` with:
    - feature (required)
    - version (if provided)
+   - prefer `detail: "summary"` first
 
 2. Identify the main feature spec from the returned documents.
 

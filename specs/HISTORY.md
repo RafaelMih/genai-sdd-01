@@ -46,3 +46,11 @@ Archive superseded specs when all conditions are true:
 
 - `spec:status`, `spec:trace`, `spec:coverage`, and `spec:drift` should continue to operate only on active feature folders
 - AI context loaders should ignore `specs/archive/` by default
+
+## Operational workflow
+
+1. Keep the latest approved spec in `specs/features/<feature>/`
+2. Move superseded versions with `npm run specs:archive`
+3. Reindex specs after archival with `npm run index:specs`
+4. Regenerate feature summaries with `npm run context:generate` if needed
+5. Do not retrieve archived specs unless the task explicitly requires historical comparison

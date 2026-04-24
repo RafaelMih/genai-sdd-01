@@ -39,8 +39,11 @@ Identify and classify any divergence between the current implementation, tests, 
 - Read the latest approved spec version.
 - Extract all Acceptance Criteria (ACs).
 - Load `TRACEABILITY.md` and map AC -> files -> tests.
+- Ignore `specs/archive/` unless the task is explicitly comparative or historical.
 
 Use the short context to understand the feature boundary before expanding to the full spec.
+
+When context tooling reports cache/budget metadata, prefer the cached short context first and escalate only if the drift cannot be classified safely from that material.
 
 ---
 

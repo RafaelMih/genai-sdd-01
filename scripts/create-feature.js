@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-import { access, mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+
 function toTitleCase(input) {
   return input
     .split(/[-_\s]+/)
@@ -9,11 +10,13 @@ function toTitleCase(input) {
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 }
+
 function assertValidFeatureName(name) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name)) {
     throw new Error('Invalid feature name. Use kebab-case only, e.g. "auth" or "user-profile".');
   }
 }
+
 async function exists(target) {
   try {
     await access(target);
@@ -22,24 +25,31 @@ async function exists(target) {
     return false;
   }
 }
+
 async function main() {
   const featureName = process.argv[2];
+  const version = process.argv[3] ?? "1.0.0";
+
   if (!featureName) {
-    throw new Error("Usage: npm run create:feature -- <feature-name>");
+    throw new Error("Usage: npm run create:feature -- <feature-name> [version]");
   }
+
   assertValidFeatureName(featureName);
+
   const featureTitle = toTitleCase(featureName);
   const specDir = path.join("specs", "features", featureName);
   const srcDir = path.join("src", "features", featureName);
-  const version = "1.0.0";
+
   if (await exists(specDir)) {
     throw new Error(`Feature already exists: ${specDir}`);
   }
+
   await mkdir(specDir, { recursive: true });
   await mkdir(path.join(srcDir, "components"), { recursive: true });
   await mkdir(path.join(srcDir, "hooks"), { recursive: true });
   await mkdir(path.join(srcDir, "services"), { recursive: true });
   await mkdir(path.join(srcDir, "tests"), { recursive: true });
+
   const specContent = `# Feature Spec: ${featureTitle}
 Version: ${version}
 Status: Draft
@@ -61,12 +71,11 @@ Describe the feature outcome in one sentence.
 3. System completes the action
 
 ## Acceptance criteria
-- AC-01: Replace this with a testable behavior
-- AC-02: Replace this with a testable behavior
+- AC1: Replace this with a testable behavior
+- AC2: Replace this with a testable behavior
 
 ## Dependencies
-- specs/technical/<relevant-contract>.md
-- specs/decisions/<relevant-adr>.md
+- None
 
 ## Tests
 - unit:
@@ -74,8 +83,9 @@ Describe the feature outcome in one sentence.
 - e2e:
 
 ## Open questions
-- none
+- None
 `;
+
   const tasksContent = `# Tasks - ${featureTitle} v${version}
 
 - [ ] Finalize the spec
@@ -84,11 +94,13 @@ Describe the feature outcome in one sentence.
 - [ ] Add tests
 - [ ] Update specs/features/${featureName}/TRACEABILITY.md
 `;
+
   const changelogContent = `# Changelog - ${featureTitle}
 
 ## v${version}
 - Initial feature spec
 `;
+
   const contextContent = `# Context - ${featureName}
 
 Spec: specs/features/${featureName}/spec-v${version}.md
@@ -124,14 +136,19 @@ Describe the feature outcome in one sentence.
 - integration:
 - e2e:
 `;
+
   const traceabilityContent = `# Traceability - ${featureTitle}
 
 Spec: specs/features/${featureName}/spec-v${version}.md
 
 ## Acceptance Criteria Mapping
-- AC-01 -> <file.tsx>
-- AC-02 -> <file.ts>
+
+| AC | Criteria | Module(s) | Test(s) |
+|----|----------|-----------|---------|
+| AC1 | TBD | TBD | TBD |
+| AC2 | TBD | TBD | TBD |
 `;
+
   const readmeContent = `# ${featureTitle}
 
 This folder contains the ${featureName} feature implementation.
@@ -143,16 +160,44 @@ This folder contains the ${featureName} feature implementation.
 - tests/
 - Traceability lives in specs/features/${featureName}/TRACEABILITY.md
 `;
+
   await writeFile(path.join(specDir, `spec-v${version}.md`), specContent, "utf8");
   await writeFile(path.join(specDir, `tasks-v${version}.md`), tasksContent, "utf8");
   await writeFile(path.join(specDir, "changelog.md"), changelogContent, "utf8");
   await writeFile(path.join(specDir, "CONTEXT.md"), contextContent, "utf8");
   await writeFile(path.join(specDir, "TRACEABILITY.md"), traceabilityContent, "utf8");
   await writeFile(path.join(srcDir, "README.md"), readmeContent, "utf8");
+
+  const manifestDir = path.join("specs", ".index");
+  const manifestPath = path.join(manifestDir, "spec-manifest.json");
+
+  await mkdir(manifestDir, { recursive: true });
+
+  const manifest = (await exists(manifestPath))
+    ? JSON.parse(await readFile(manifestPath, "utf8"))
+    : [];
+
+  const manifestEntry = {
+    id: `feature-${featureName}-v${version}`,
+    path: `specs/features/${featureName}/spec-v${version}.md`,
+    type: "feature",
+    feature: featureName,
+    version,
+    status: "active",
+    dependsOn: [],
+  };
+
+  if (!manifest.some((entry) => entry.id === manifestEntry.id)) {
+    manifest.push(manifestEntry);
+    await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  }
+
   console.log(`Feature scaffold created successfully:
 - ${specDir}
-- ${srcDir}`);
+- ${srcDir}
+- manifest updated`);
 }
+
 main().catch((error) => {
   const message = error instanceof Error ? error.message : String(error);
   console.error(message);

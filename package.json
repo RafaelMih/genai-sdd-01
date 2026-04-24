@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:e2e": "vite --mode e2e --host 127.0.0.1 --port 4173",
     "typecheck": "tsc --project tsconfig.app.json --noEmit",
     "lint": "eslint src --max-warnings 0",
     "build": "tsc -b && vite build",
@@ -18,15 +19,22 @@
     "spec:drift": "tsx scripts/spec-drift.ts",
     "spec:status": "tsx scripts/spec-status.ts",
     "spec:check": "npm run spec:lint && npm run spec:status && npm run spec:trace && npm run spec:coverage && npm run spec:drift",
+    "spec:doctor": "tsx scripts/spec-doctor.ts",
+    "spec:doctor:fix": "tsx scripts/spec-doctor.ts --fix",
+    "spec:ci": "npm run format && npm run typecheck && npm run lint && npm run spec:doctor && npm run test",
     "precommit:spec": "tsx scripts/precommit-spec.ts",
     "ai:context": "tsx scripts/ai-context.ts",
     "context:generate": "tsx scripts/generate-feature-contexts.ts",
     "context:report": "tsx scripts/context-telemetry-report.ts",
+    "specs:archive": "tsx scripts/specs-archive.ts",
     "mcp:spec": "tsx mcp/spec-rag-mcp.ts",
     "mcp:pokemon": "tsx mcp/pokemon-mcp.ts",
     "index:specs": "tsx scripts/index-specs.ts",
     "test": "vitest --run --exclude 'tests/firestore.rules.test.ts'",
-    "test:rules": "firebase emulators:exec --only firestore \"vitest run tests/firestore.rules.test.ts\""
+    "test:rules": "firebase emulators:exec --only firestore \"vitest run tests/firestore.rules.test.ts\"",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -41,6 +49,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@firebase/rules-unit-testing": "^5.0.0",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/vite": "^4.1.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.6.0",
@@ -55,6 +64,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "jsdom": "^25.0.1",
+    "playwright": "^1.59.1",
     "prettier": "^3.8.3",
     "tailwindcss": "^4.1.0",
     "ts-node": "^10.9.2",

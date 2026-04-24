@@ -55,3 +55,7 @@
 ## v1.0.0
 
 - Initial auth spec with email/password login
+
+## Archived specs
+
+- Historical specs moved to `specs/archive/auth/`: spec-v1.0.0.md, spec-v1.1.0.md, spec-v1.1.1.md, spec-v1.1.2.md

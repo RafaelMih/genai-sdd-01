@@ -2,6 +2,8 @@
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
+import { buildContextCacheKey, readContextCache, writeContextCache } from "./context-cache.js";
 import { recordContextTelemetry } from "./context-telemetry.js";
 
 type SpecType = "product" | "technical" | "decision" | "feature";
@@ -12,6 +14,7 @@ type SpecManifestEntry = {
   type: SpecType;
   feature?: string;
   version?: string;
+  status?: "active" | "superseded" | "archived";
   dependsOn?: string[];
 };
 
@@ -32,6 +35,7 @@ const CHUNKS_PATH = path.resolve("specs", ".index", "spec-chunks.json");
 const MANIFEST_PATH = path.resolve("specs", ".index", "spec-manifest.json");
 const MAX_CONTEXT_CHUNKS = 8;
 const MAX_CONTEXT_TOKENS = 900;
+const SUMMARY_BUDGET_TOKENS = 1400;
 
 const feature = process.argv[2];
 const version = process.argv[3];
@@ -58,7 +62,7 @@ async function loadChunks(): Promise<SpecChunk[]> {
 
 async function loadManifest(): Promise<SpecManifestEntry[]> {
   const raw = await readFile(MANIFEST_PATH, "utf8");
-  return JSON.parse(raw) as SpecManifestEntry[];
+  return (JSON.parse(raw) as SpecManifestEntry[]).filter((entry) => entry.status !== "archived");
 }
 
 async function loadFeatureContext(featureName: string): Promise<string | null> {
@@ -146,6 +150,8 @@ ${chunk.content}`;
 }
 
 async function main() {
+  const invocationId = randomUUID();
+  const startedAt = Date.now();
   const [chunks, manifest, featureContext] = await Promise.all([
     loadChunks(),
     loadManifest(),
@@ -160,6 +166,43 @@ async function main() {
   }
 
   const relatedSpecIds = new Set<string>([targetSpec.id, ...(targetSpec.dependsOn ?? [])]);
+  const relatedSpecPaths = manifest
+    .filter((entry) => relatedSpecIds.has(entry.id))
+    .map((entry) => path.resolve(entry.path));
+  const cacheFiles = [CHUNKS_PATH, MANIFEST_PATH, ...relatedSpecPaths];
+  if (featureContext) {
+    cacheFiles.push(path.resolve("specs", "features", feature, "CONTEXT.md"));
+  }
+
+  const cacheKey = await buildContextCacheKey({
+    feature,
+    version: targetSpec.version ?? version ?? null,
+    mode: "chunked",
+    files: cacheFiles,
+  });
+  const cached = await readContextCache(cacheKey);
+
+  if (cached) {
+    await recordContextTelemetry({
+      invocationId,
+      timestamp: new Date().toISOString(),
+      source: "ai-context",
+      origin: "npm run ai:context",
+      feature,
+      version: targetSpec.version ?? version ?? null,
+      mode: "chunked",
+      status: "cached",
+      durationMs: Date.now() - startedAt,
+      chunkCount: Number(cached.metadata.chunkCount ?? 0),
+      estimatedTokens: Number(cached.metadata.estimatedTokens ?? 0),
+      budgetLimit: MAX_CONTEXT_TOKENS,
+      budgetExceeded: Boolean(cached.metadata.budgetExceeded),
+      cacheKey,
+      relatedSpecs: [...relatedSpecIds],
+    });
+    console.log(cached.content);
+    return;
+  }
 
   const rankedChunks = chunks
     .map((chunk) => ({
@@ -193,20 +236,13 @@ async function main() {
   const summaryPrefix = featureContext
     ? `Canonical feature context:\n\n${featureContext}\n\n---\n\n`
     : "";
+  const budgetExceeded = totalTokens > MAX_CONTEXT_TOKENS || totalTokens > SUMMARY_BUDGET_TOKENS;
+  const budgetWarning = budgetExceeded
+    ? `Budget warning: estimated context tokens (${totalTokens}) exceeded the recommended budget.\n\n`
+    : "";
 
-  await recordContextTelemetry({
-    timestamp: new Date().toISOString(),
-    source: "ai-context",
-    feature,
-    version: targetSpec.version ?? version ?? null,
-    mode: "chunked",
-    chunkCount: relevantChunks.length + (featureContext ? 1 : 0),
-    estimatedTokens: totalTokens,
-    relatedSpecs: [...relatedSpecIds],
-  });
-
-  console.log(`
-You are implementing a Spec Driven Development task.
+  const output = `
+${budgetWarning}You are implementing a Spec Driven Development task.
 
 Use ONLY the following specs as source of truth.
 If something is missing, stop and ask for spec clarification.
@@ -219,7 +255,37 @@ Context budget: ${totalTokens} estimated tokens across ${relevantChunks.length} 
 Relevant specs:
 
 ${summaryPrefix}${context}
-`);
+`;
+
+  await writeContextCache({
+    cacheKey,
+    content: output,
+    metadata: {
+      chunkCount: relevantChunks.length + (featureContext ? 1 : 0),
+      estimatedTokens: totalTokens,
+      budgetExceeded,
+    },
+  });
+
+  await recordContextTelemetry({
+    invocationId,
+    timestamp: new Date().toISOString(),
+    source: "ai-context",
+    origin: "npm run ai:context",
+    feature,
+    version: targetSpec.version ?? version ?? null,
+    mode: "chunked",
+    status: budgetExceeded ? "warning" : "generated",
+    durationMs: Date.now() - startedAt,
+    chunkCount: relevantChunks.length + (featureContext ? 1 : 0),
+    estimatedTokens: totalTokens,
+    budgetLimit: MAX_CONTEXT_TOKENS,
+    budgetExceeded,
+    cacheKey,
+    relatedSpecs: [...relatedSpecIds],
+  });
+
+  console.log(output);
 }
 
 main().catch((error) => {

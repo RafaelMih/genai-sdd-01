@@ -39,3 +39,7 @@
 ## v1.0.0
 
 - Initial feature spec
+
+## Archived specs
+
+- Historical specs moved to `specs/archive/user-signup/`: spec-v1.0.0.md, spec-v1.1.0.md, spec-v1.2.0.md

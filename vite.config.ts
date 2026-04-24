@@ -5,10 +5,11 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  envDir: "src/config",
+  envDir: ".",
   test: {
     environment: "jsdom",
     setupFiles: ["src/test/setup.ts"],
     globals: true,
+    exclude: ["**/node_modules/**", "**/dist/**", "tests/firestore.rules.test.ts", "e2e/**"],
   },
 });

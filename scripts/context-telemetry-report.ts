@@ -4,13 +4,21 @@ import fs from "node:fs";
 import path from "node:path";
 
 type ContextTelemetryEvent = {
+  invocationId?: string;
   timestamp: string;
   source: "ai-context" | "spec-rag-mcp";
+  origin?: string;
   feature: string;
   version?: string | null;
   mode: "summary" | "full" | "chunked";
+  status?: "generated" | "cached" | "warning";
+  durationMs?: number;
   chunkCount?: number;
   estimatedTokens?: number;
+  budgetLimit?: number;
+  budgetExceeded?: boolean;
+  cacheKey?: string | null;
+  sessionId?: string | null;
   relatedSpecs?: string[];
 };
 
@@ -34,10 +42,22 @@ if (events.length === 0) {
 
 const totalTokens = events.reduce((sum, event) => sum + (event.estimatedTokens ?? 0), 0);
 const totalChunks = events.reduce((sum, event) => sum + (event.chunkCount ?? 0), 0);
+const totalDuration = events.reduce((sum, event) => sum + (event.durationMs ?? 0), 0);
+const cacheHits = events.filter((event) => event.status === "cached").length;
+const warnings = events.filter((event) => event.budgetExceeded).length;
 
 const byFeature = new Map<
   string,
-  { calls: number; estimatedTokens: number; chunks: number; summaryCalls: number; fullCalls: number }
+  {
+    calls: number;
+    estimatedTokens: number;
+    chunks: number;
+    summaryCalls: number;
+    fullCalls: number;
+    durationMs: number;
+    cacheHits: number;
+    warnings: number;
+  }
 >();
 
 for (const event of events) {
@@ -47,11 +67,17 @@ for (const event of events) {
     chunks: 0,
     summaryCalls: 0,
     fullCalls: 0,
+    durationMs: 0,
+    cacheHits: 0,
+    warnings: 0,
   };
 
   current.calls += 1;
   current.estimatedTokens += event.estimatedTokens ?? 0;
   current.chunks += event.chunkCount ?? 0;
+  current.durationMs += event.durationMs ?? 0;
+  if (event.status === "cached") current.cacheHits += 1;
+  if (event.budgetExceeded) current.warnings += 1;
   if (event.mode === "full") current.fullCalls += 1;
   if (event.mode === "summary" || event.mode === "chunked") current.summaryCalls += 1;
 
@@ -61,14 +87,21 @@ for (const event of events) {
 console.log(`Events: ${events.length}`);
 console.log(`Estimated tokens: ${totalTokens}`);
 console.log(`Chunks/documents served: ${totalChunks}`);
+console.log(
+  `Average duration: ${events.length > 0 ? (totalDuration / events.length).toFixed(2) : "0"}ms`,
+);
+console.log(`Cache hits: ${cacheHits}`);
+console.log(`Budget warnings: ${warnings}`);
 console.log("");
-console.log("| Feature | Calls | Est. tokens | Chunks/docs | Summary/chunked | Full |");
-console.log("| --- | ---: | ---: | ---: | ---: | ---: |");
+console.log(
+  "| Feature | Calls | Est. tokens | Chunks/docs | Avg ms | Cache hits | Warnings | Summary/chunked | Full |",
+);
+console.log("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |");
 
 for (const [feature, data] of [...byFeature.entries()].sort((left, right) =>
   left[0].localeCompare(right[0]),
 )) {
   console.log(
-    `| ${feature} | ${data.calls} | ${data.estimatedTokens} | ${data.chunks} | ${data.summaryCalls} | ${data.fullCalls} |`,
+    `| ${feature} | ${data.calls} | ${data.estimatedTokens} | ${data.chunks} | ${(data.durationMs / data.calls).toFixed(2)} | ${data.cacheHits} | ${data.warnings} | ${data.summaryCalls} | ${data.fullCalls} |`,
   );
 }
