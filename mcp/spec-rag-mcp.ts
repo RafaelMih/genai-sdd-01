@@ -5,6 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
+import { recordContextTelemetry } from "../scripts/context-telemetry.js";
 
 type SpecManifestEntry = {
   id: string;
@@ -24,6 +25,14 @@ async function loadManifest(): Promise<SpecManifestEntry[]> {
 
 async function readSpecFile(relativePath: string): Promise<string> {
   return readFile(path.resolve(relativePath), "utf8");
+}
+
+async function readFeatureContext(feature: string): Promise<string | null> {
+  try {
+    return await readFile(path.resolve("specs", "features", feature, "CONTEXT.md"), "utf8");
+  } catch {
+    return null;
+  }
 }
 
 function normalizeWhitespace(value: string): string {
@@ -125,6 +134,7 @@ async function retrieveRelevantSpecs(
 
   const relatedIds = new Set<string>([featureSpec.id, ...(featureSpec.dependsOn ?? [])]);
   const relatedEntries = manifest.filter((entry) => relatedIds.has(entry.id));
+  const featureContext = await readFeatureContext(feature);
 
   const documents = await Promise.all(
     relatedEntries.map(async (entry) => ({
@@ -133,7 +143,7 @@ async function retrieveRelevantSpecs(
     })),
   );
 
-  return documents
+  const payload = documents
     .map(
       ({ entry, content }) => `# ${entry.id}
 Path: ${entry.path}
@@ -143,6 +153,32 @@ Version: ${entry.version ?? null}
 ${detail === "full" ? content : buildSummary(entry, content)}`,
     )
     .join("\n\n---\n\n");
+
+  await recordContextTelemetry({
+    timestamp: new Date().toISOString(),
+    source: "spec-rag-mcp",
+    feature,
+    version: featureSpec.version ?? version ?? null,
+    mode: detail,
+    chunkCount: documents.length + (featureContext ? 1 : 0),
+    estimatedTokens: Math.ceil(payload.split(/\s+/).filter(Boolean).length * 1.3),
+    relatedSpecs: [...relatedIds],
+  });
+
+  if (!featureContext) {
+    return payload;
+  }
+
+  return `# feature-context
+Path: specs/features/${feature}/CONTEXT.md
+Type: feature-context
+Version: ${featureSpec.version ?? null}
+
+${featureContext}
+
+---
+
+${payload}`;
 }
 
 const server = new McpServer({

@@ -1,7 +1,9 @@
-# Feature Spec: User Signup
+# Context - user-signup
 
-Version: 1.2.1
-Status: Approved
+Spec: specs/features/user-signup/spec-v1.2.1.md
+
+This file is the canonical short context for AI-assisted work on this feature.
+It summarizes only the current active spec and should stay aligned with the latest approved version.
 
 ## Objective
 
@@ -84,143 +86,6 @@ An optional phone number may be provided and is persisted in the user profile.
 - AC20: When the user submits the signup form with a non-empty phone value that does not match the allowed format (see Validation contract), the page displays the inline validation error "Telefone inválido" below the phone field
 - AC21: When the signup flow writes the user profile to Firestore with a valid non-empty phone value, the system creates `users/{uid}` with a `phone` field containing that value; when the phone field is empty, the system creates `users/{uid}` without a `phone` field
 
-## Validation contract
-
-**Name**
-
-- Required: non-empty string; failure message -> "Nome é obrigatório" (AC1)
-- Minimum length: >= 2 characters; failure message -> "O nome deve ter pelo menos 2 caracteres" (AC2)
-- Maximum length: <= 100 characters; failure message -> "O nome deve ter no máximo 100 caracteres" (AC3)
-- Validations run in order; first failure stops the chain
-
-**Email**
-
-- Required: non-empty string; failure message -> "E-mail é obrigatório" (AC4)
-- Format: must match `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`; failure message -> "E-mail inválido" (AC5)
-- Validations run in order; first failure stops the chain
-
-**Password**
-
-- Required: non-empty string; failure message -> "Senha é obrigatória" (AC6)
-- Minimum length: >= 6 characters; failure message -> "A senha deve ter pelo menos 6 caracteres" (AC7)
-- Validations run in order; first failure stops the chain
-
-**Confirm password**
-
-- Required: non-empty string; failure message -> "Confirmação de senha é obrigatória" (AC8)
-- Must match the value of the password field at time of submit; failure message -> "As senhas não conferem" (AC9)
-- Validations run in order; first failure stops the chain
-
-**Phone** (optional)
-
-- If empty (blank string or absent): no validation runs; field passes silently (AC19)
-- If non-empty: must match `/^\+?[\d\s()\-]{8,20}$/`; failure message -> "Telefone inválido" (AC20)
-- The regex allows an optional leading `+` followed by 8 to 20 characters from the set: digits,
-  spaces, parentheses, and hyphens. The `{8,20}` quantifier applies to the portion after the
-  optional `+`. Concrete examples:
-  - `12345678` -> valid (8 characters, no `+`)
-  - `+12345678` -> valid (`+` plus 8 digits)
-  - `(11) 99999-9999` -> valid (15 characters, no `+`)
-  - `+55 (11) 99999-9999` -> valid (`+` plus 18 characters)
-  - `1234567` -> invalid (only 7 characters after the optional `+`)
-  - `+1234567` -> invalid (`+` present but only 7 digits follow -> fewer than 8 required by `{8,20}`)
-
-**Trigger rules**
-
-- Validation runs on form submit
-- Validation also runs on individual field change, but only after the first submit attempt
-  (react-hook-form `mode: "onSubmit"` with `reValidateMode: "onChange"` or equivalent)
-- Change-triggered revalidation is UX behavior and does not have its own acceptance criteria;
-  it must not break any existing AC
-
-## Error messages contract
-
-| Firebase error code           | Mensagem exibida ao usuário (pt-BR) |
-| ----------------------------- | ----------------------------------- |
-| `auth/email-already-in-use`   | Este e-mail já está em uso.         |
-| `auth/invalid-email`          | E-mail inválido                     |
-| `auth/network-request-failed` | Erro de conexão. Tente novamente.   |
-| `auth/too-many-requests`      | Muitas tentativas. Tente mais tarde.|
-| `auth/operation-not-allowed`  | Operação não permitida.             |
-| (todos os demais)             | Erro ao criar conta.                |
-
-> `auth/invalid-email` is a fallback: if client-side email validation is bypassed (e.g., via DevTools),
-> Firebase may return this code. It must be handled but is not a duplicate of AC5.
->
-> The error code is read from the `code` property (type: `string`) of the Firebase `AuthError`
-> object thrown by `createUserWithEmailAndPassword`.
-
-## Redirect contract
-
-| Trigger                    | Source  | Destination | Semantics | Browser back from destination |
-| -------------------------- | ------- | ----------- | --------- | ----------------------------- |
-| Successful signup          | /signup | /dashboard  | `replace` | Does not return to /signup    |
-| User already authenticated | /signup | /dashboard  | `replace` | Does not return to /signup    |
-
-Both redirects use the router's `navigate` function (not a hard page reload).
-
-## Auth state contract
-
-Auth state is observed via Firebase Auth `onAuthStateChanged`.
-
-| State value | Meaning         | Signup page renders        |
-| ----------- | --------------- | -------------------------- |
-| `undefined` | Resolving       | Nothing (no flash of form) |
-| `null`      | Unauthenticated | Signup form                |
-| `User`      | Authenticated   | Redirect to /dashboard     |
-
-## UI state contract
-
-| State            | Button label   | Button disabled | Firebase error message |
-| ---------------- | -------------- | --------------- | ---------------------- |
-| Default          | Criar conta    | No              | Hidden                 |
-| Submitting       | Criando conta...| Yes            | Hidden (cleared)       |
-| Error (Firebase) | Criar conta    | No              | Visible (above button) |
-| Success          | -              | -               | - (page redirects)     |
-
-- Firebase error message placement: between the phone field and the submit button
-- Firebase error message lifecycle: cleared at the start of each new submit attempt; not cleared by
-  input changes between submits
-- Inline validation errors: displayed immediately below their respective fields
-
-## Firestore write contract
-
-Collection: `users`
-Document ID: `user.uid` (the authenticated Firebase user's UID, obtained from `auth.currentUser.uid`)
-
-Fields written at signup:
-
-| Field         | Type      | Value                                 | Condition               |
-| ------------- | --------- | ------------------------------------- | ----------------------- |
-| `displayName` | string    | value of the name field (as entered)  | always                  |
-| `email`       | string    | value of the email field              | always                  |
-| `provider`    | string    | `"password"` (literal constant)       | always                  |
-| `createdAt`   | timestamp | `serverTimestamp()` from Firebase     | always                  |
-| `updatedAt`   | timestamp | `serverTimestamp()` from Firebase     | always                  |
-| `phone`       | string    | value of the phone field (as entered) | only if phone non-empty |
-
-- The document is written using the client SDK (`setDoc`) immediately after successful `createUserWithEmailAndPassword`.
-- This write is permitted by the security rules (users can create their own document).
-- If phone is an empty string, the `phone` field is NOT included in the written document (AC21).
-
-## Partial failure contract
-
-If `createUserWithEmailAndPassword` succeeds but the Firestore `setDoc` fails:
-
-1. Call `signOut(auth)` to restore a clean unauthenticated state.
-2. Display the default error message: "Erro ao criar conta."
-3. Re-enable the submit button with label "Criar conta".
-4. Do NOT redirect.
-
-The user may retry the full signup flow. On retry, the orphaned Firebase Auth user (from step 1) means
-`createUserWithEmailAndPassword` will fail with `auth/email-already-in-use`, which surfaces as
-"Este e-mail já está em uso." Cleanup of the orphaned auth user is out of scope.
-
-## Session contract
-
-Firebase Auth default session persistence (`local`) applies. Tokens persist across tabs and browser
-restarts. No override is required by this feature.
-
 ## Dependencies
 
 - `specs/decisions/ADR-001-use-firebase.md`
@@ -255,7 +120,3 @@ restarts. No override is required by this feature.
 | Signup com telefone: documento Firestore inclui campo phone           | Integration | AC17, AC21   |
 | Signup sem telefone: documento Firestore omite campo phone            | Integration | AC17, AC21   |
 | Usuário autenticado em /signup -> redirect com replace sem render form| Integration | AC18         |
-
-## Open questions
-
-Nenhuma.

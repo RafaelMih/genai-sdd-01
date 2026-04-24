@@ -2,6 +2,7 @@
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { recordContextTelemetry } from "./context-telemetry.js";
 
 type SpecType = "product" | "technical" | "decision" | "feature";
 
@@ -58,6 +59,16 @@ async function loadChunks(): Promise<SpecChunk[]> {
 async function loadManifest(): Promise<SpecManifestEntry[]> {
   const raw = await readFile(MANIFEST_PATH, "utf8");
   return JSON.parse(raw) as SpecManifestEntry[];
+}
+
+async function loadFeatureContext(featureName: string): Promise<string | null> {
+  const contextPath = path.resolve("specs", "features", featureName, "CONTEXT.md");
+
+  try {
+    return await readFile(contextPath, "utf8");
+  } catch {
+    return null;
+  }
 }
 
 function compareVersions(left: string, right: string): number {
@@ -135,7 +146,11 @@ ${chunk.content}`;
 }
 
 async function main() {
-  const [chunks, manifest] = await Promise.all([loadChunks(), loadManifest()]);
+  const [chunks, manifest, featureContext] = await Promise.all([
+    loadChunks(),
+    loadManifest(),
+    loadFeatureContext(feature),
+  ]);
   const targetSpec = resolveTargetSpec(manifest, feature, version);
 
   if (!targetSpec) {
@@ -175,6 +190,20 @@ async function main() {
   }
 
   const context = relevantChunks.map(formatChunk).join("\n\n---\n\n");
+  const summaryPrefix = featureContext
+    ? `Canonical feature context:\n\n${featureContext}\n\n---\n\n`
+    : "";
+
+  await recordContextTelemetry({
+    timestamp: new Date().toISOString(),
+    source: "ai-context",
+    feature,
+    version: targetSpec.version ?? version ?? null,
+    mode: "chunked",
+    chunkCount: relevantChunks.length + (featureContext ? 1 : 0),
+    estimatedTokens: totalTokens,
+    relatedSpecs: [...relatedSpecIds],
+  });
 
   console.log(`
 You are implementing a Spec Driven Development task.
@@ -189,7 +218,7 @@ Context budget: ${totalTokens} estimated tokens across ${relevantChunks.length} 
 
 Relevant specs:
 
-${context}
+${summaryPrefix}${context}
 `);
 }
 

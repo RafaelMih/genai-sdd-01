@@ -36,6 +36,9 @@ Input:
 ```json
 {
   "feature": "<feature-name>",
-  "version": "<resolved-from_version>"
+  "version": "<resolved-from_version>",
+  "detail": "summary"
 }
 ```
+
+Prefer the short context first. Escalate to `detail: "full"` only when the requested edit cannot be performed safely from the summary plus the active spec file.

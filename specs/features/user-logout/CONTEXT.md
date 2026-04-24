@@ -1,7 +1,9 @@
-# Feature Spec: User Logout
+# Context - user-logout
 
-Version: 1.1.0
-Status: Approved
+Spec: specs/features/user-logout/spec-v1.1.0.md
+
+This file is the canonical short context for AI-assisted work on this feature.
+It summarizes only the current active spec and should stay aligned with the latest approved version.
 
 ## Objective
 
@@ -47,56 +49,6 @@ Allow an authenticated user to end their Firebase Auth session. After logout, th
 - AC5: When `signOut` fails, the component displays the error message "Erro ao sair da conta." below the logout button and re-enables the button with label "Sair"
 - AC6: When logout succeeds and the app has navigated to `/login` with `replace`, pressing browser back from `/login` does not return to the page from which logout was triggered
 
-## Auth state contract
-
-`LogoutButton` is rendered only inside auth-gated layouts. The component itself does not manage auth state routing; that is the responsibility of route guards (declared dependency).
-
-| Auth state  | `LogoutButton` behavior                              |
-| ----------- | ---------------------------------------------------- |
-| `User`      | Renders normally; logout button is interactive       |
-| `null`      | Not rendered (component is inside auth-gated layout) |
-| `undefined` | Not rendered (component is inside auth-gated layout) |
-
-## Redirect contract
-
-| Trigger           | Source                 | Destination | Semantics | Browser back from destination                               |
-| ----------------- | ---------------------- | ----------- | --------- | ----------------------------------------------------------- |
-| Successful logout | Any authenticated page | `/login`    | `replace` | Does not return to the page from which logout was triggered |
-
-Navigation is performed via the router's `navigate` function (not a hard page reload).
-
-## UI state contract
-
-| State      | Button label | Button disabled | Error message          |
-| ---------- | ------------ | --------------- | ---------------------- |
-| Default    | Sair         | No              | Hidden                 |
-| Submitting | Saindo...    | Yes             | Hidden                 |
-| Error      | Sair         | No              | Visible (below button) |
-
-- Error message lifecycle: displayed after a failed `signOut`; cleared when a new logout attempt begins
-- Inline error is rendered immediately below the logout button
-
-## Error messages contract
-
-| Firebase error code           | Message displayed                  |
-| ----------------------------- | ---------------------------------- |
-| `auth/network-request-failed` | Erro de conexão. Tente novamente.  |
-| (all other codes)             | Erro ao sair da conta.             |
-
-> The error code is read from the `code` property (type: `string`) of the Firebase `AuthError`
-> object thrown by `signOut`. If the thrown error does not have a `code` property, the default
-> message "Erro ao sair da conta." is used.
-
-## Session cleanup contract
-
-`signOut(auth)` handles all Firebase session and token cleanup. After a successful `signOut`:
-
-- Firebase `onAuthStateChanged` fires with `null`
-- `useAuthState` hook propagates `null` to all consumers
-- Subsequent Firestore and Storage operations are subject to Firebase security rules for unauthenticated users
-
-No additional localStorage or cookie cleanup is required by this feature. App-level listener cleanup (e.g., `onSnapshot` unsubscribers) is the responsibility of the components that register them and is out of scope for this feature.
-
 ## Dependencies
 
 - Firebase Auth SDK: `signOut`, `AuthError.code`
@@ -116,7 +68,3 @@ No additional localStorage or cookie cleanup is required by this feature. App-le
 | Falha no `signOut`: botão reabilitado com label "Sair"              | Integration | AC5          |
 | Browser back de /login após logout não retorna à página de origem   | Integration | AC6          |
 | `auth/network-request-failed` -> "Erro de conexão. Tente novamente."| Unit        | AC5          |
-
-## Open questions
-
-Nenhuma.

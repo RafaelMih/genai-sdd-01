@@ -1,0 +1,2 @@
+{"timestamp":"2026-04-24T14:06:59.119Z","source":"ai-context","feature":"auth","version":"1.1.3","mode":"chunked","chunkCount":9,"estimatedTokens":228,"relatedSpecs":["feature-auth-v1.1.3","adr-001-use-firebase"]}
+{"timestamp":"2026-04-24T14:07:47.515Z","source":"ai-context","feature":"auth","version":"1.1.3","mode":"chunked","chunkCount":9,"estimatedTokens":305,"relatedSpecs":["feature-auth-v1.1.3","adr-001-use-firebase"]}

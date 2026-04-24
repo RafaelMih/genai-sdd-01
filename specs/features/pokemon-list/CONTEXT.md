@@ -1,7 +1,9 @@
-# Feature Spec: Pokemon List
+# Context - pokemon-list
 
-Version: 1.0.0
-Status: Approved
+Spec: specs/features/pokemon-list/spec-v1.0.0.md
+
+This file is the canonical short context for AI-assisted work on this feature.
+It summarizes only the current active spec and should stay aligned with the latest approved version.
 
 ## Objective
 
@@ -39,58 +41,6 @@ Exibir uma lista de Pokémons no dashboard do usuário autenticado, consumindo a
 - AC4: Enquanto a requisição inicial à PokéAPI está em andamento, o componente exibe o texto "Carregando Pokémons..." e não renderiza nenhum card
 - AC5: Quando a requisição à PokéAPI falha, o componente exibe "Erro ao carregar Pokémons. Tente novamente." e não renderiza nenhum card
 
-## API contract
-
-**Endpoint de listagem:**
-
-```
-GET https://pokeapi.co/api/v2/pokemon?limit=20&offset=0
-```
-
-Resposta:
-
-```json
-{
-  "count": 1302,
-  "results": [
-    { "name": "bulbasaur", "url": "https://pokeapi.co/api/v2/pokemon/1/" },
-    { "name": "ivysaur", "url": "https://pokeapi.co/api/v2/pokemon/2/" }
-  ]
-}
-```
-
-**Extração do ID e sprite:**
-
-O ID é extraído da `url` de cada resultado via regex: o último segmento numérico antes da barra final.
-
-```
-"https://pokeapi.co/api/v2/pokemon/1/" -> id = 1
-```
-
-O sprite frontal é construído sem chamada adicional:
-
-```
-https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{id}.png
-```
-
-Esta abordagem evita 20 requisições extras de detalhe por Pokémon.
-
-## UI state contract
-
-| Estado  | Renderização                                        |
-| ------- | --------------------------------------------------- |
-| loading | Texto "Carregando Pokémons..." (nenhum card)        |
-| error   | Texto "Erro ao carregar Pokémons. Tente novamente." |
-| success | Grade de `PokemonCard` (um por Pokémon retornado)   |
-
-## Data contract
-
-| Campo exibido | Origem                      | Transformação                            |
-| ------------- | --------------------------- | ---------------------------------------- |
-| Número        | `id` extraído da `url`      | `#${String(id).padStart(3, '0')}`        |
-| Nome          | `name` do resultado         | Primeira letra maiúscula                 |
-| Sprite        | Construído a partir do `id` | URL do repositório de sprites do PokeAPI |
-
 ## Dependencies
 
 - PokéAPI pública: `https://pokeapi.co/api/v2/`
@@ -109,7 +59,3 @@ Esta abordagem evita 20 requisições extras de detalhe por Pokémon.
 | Dashboard exibe "Carregando Pokémons..." durante fetch | Integration | AC4           |
 | Dashboard exibe grade de cards após fetch bem-sucedido | Integration | AC1, AC2, AC3 |
 | Dashboard exibe mensagem de erro após falha do fetch   | Integration | AC5           |
-
-## Open questions
-
-Nenhuma.

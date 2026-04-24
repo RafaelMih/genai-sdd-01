@@ -1,7 +1,9 @@
-# Feature Spec: Pokemon Agent
+# Context - pokemon-agent
 
-Version: 1.0.0
-Status: Approved
+Spec: specs/features/pokemon-agent/spec-v1.0.0.md
+
+This file is the canonical short context for AI-assisted work on this feature.
+It summarizes only the current active spec and should stay aligned with the latest approved version.
 
 ## Objective
 
@@ -23,33 +25,6 @@ Definir o comportamento de um agente especializado em Pokémons que usa as ferra
 - Comparação entre Pokémons
 - Evolução ou árvore evolutiva
 
-## Fluxos
-
-### Listagem padrão
-
-1. Agente é ativado (trigger automático ou manual)
-2. Chama `list_pokemons(limit=20, offset=0)`
-3. Exibe tabela com: número `#001`, nome capitalizado e URL do sprite
-
-### Paginação
-
-1. Usuário pede "traga mais" ou "próxima página"
-2. Agente chama `list_pokemons(limit=20, offset=N)` onde N é o offset atual + 20
-3. Exibe os próximos 20
-
-### Filtro por nome
-
-1. Usuário pede filtro (ex: "pokémons com 'char'")
-2. Agente chama `list_pokemons(limit=100, offset=0)` para ter volume suficiente
-3. Filtra localmente pelo prefixo informado (case-insensitive)
-4. Exibe apenas os correspondentes
-
-### Detalhe
-
-1. Usuário pede detalhes de um Pokémon (ex: "detalhes do pikachu" ou "detalhes do #25")
-2. Agente chama `get_pokemon(name_or_id)`
-3. Exibe: id, nome, tipos, stats (HP, Ataque, Defesa, Velocidade) e URL do sprite
-
 ## Acceptance criteria
 
 - AC1: Quando o agente é ativado sem filtro explícito de nome ou detalhe, ele chama `list_pokemons(limit=20, offset=0)` e exibe os resultados formatados em pt-BR
@@ -57,32 +32,6 @@ Definir o comportamento de um agente especializado em Pokémons que usa as ferra
 - AC3: Quando o usuário pede filtro por prefixo de nome, o agente chama `list_pokemons(limit=100, offset=0)`, filtra localmente pelo prefixo informado com comparação case-insensitive e exibe apenas os correspondentes
 - AC4: Quando o usuário pede detalhes de um Pokémon específico por nome ou número, o agente chama `get_pokemon(name_or_id)` e exibe id, nome, tipos, stats e URL do sprite
 - AC5: Quando o agente responde a qualquer fluxo definido nesta spec, a resposta final exibe texto em pt-BR e preserva sem tradução os nomes de Pokémon e termos técnicos como `HP` e `JSON`
-
-## Contracts
-
-### Ferramentas MCP disponíveis
-
-| Ferramenta      | Parâmetros                        | Retorno                                  |
-| --------------- | --------------------------------- | ---------------------------------------- |
-| `list_pokemons` | `limit: number`, `offset: number` | `Array<{ name, url }>`                   |
-| `get_pokemon`   | `name_or_id: string`              | `{ id, name, sprite, types[], stats[] }` |
-
-### Formato de exibição - listagem
-
-```
-| #   | Nome        | Sprite |
-|-----|-------------|--------|
-| #001 | Bulbasaur  | URL    |
-```
-
-### Formato de exibição - detalhe
-
-```
-#025 - Pikachu
-Tipos: electric
-HP: 35 | Ataque: 55 | Defesa: 40 | Velocidade: 90
-Sprite: https://...
-```
 
 ## Dependencies
 
@@ -101,7 +50,3 @@ Sprite: https://...
 | Ao pedir "detalhes do pikachu", agente chama `get_pokemon("pikachu")`   | Manual/Integration | AC4          |
 | Resposta de detalhe exibe tipos e stats                                 | Manual/Integration | AC4          |
 | Todas as respostas estão em pt-BR                                       | Manual             | AC5          |
-
-## Open questions
-
-Nenhuma.

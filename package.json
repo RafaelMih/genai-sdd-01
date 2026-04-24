@@ -20,6 +20,8 @@
     "spec:check": "npm run spec:lint && npm run spec:status && npm run spec:trace && npm run spec:coverage && npm run spec:drift",
     "precommit:spec": "tsx scripts/precommit-spec.ts",
     "ai:context": "tsx scripts/ai-context.ts",
+    "context:generate": "tsx scripts/generate-feature-contexts.ts",
+    "context:report": "tsx scripts/context-telemetry-report.ts",
     "mcp:spec": "tsx mcp/spec-rag-mcp.ts",
     "mcp:pokemon": "tsx mcp/pokemon-mcp.ts",
     "index:specs": "tsx scripts/index-specs.ts",

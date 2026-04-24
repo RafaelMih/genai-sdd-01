@@ -18,7 +18,16 @@ Before reading, planning, editing, or testing code, call:
 
 `retrieve_relevant_specs`
 
-Required input:
+Preferred first call:
+
+```json
+{
+  "feature": "<feature-name>",
+  "detail": "summary"
+}
+```
+
+Required input when full detail is needed:
 
 ```json
 {
@@ -38,8 +47,10 @@ Optional input when version is provided:
 ## Rules
 
 - ALWAYS call `retrieve_relevant_specs` first.
+- Prefer the `summary` detail mode first and expand to `full` only if the short context is insufficient.
 - If `version` is provided, it MUST be passed to the tool.
 - ONLY use specs returned by RAG as source of truth.
+- Prefer `specs/features/<feature>/CONTEXT.md` plus targeted spec sections over loading full documents by default.
 - ONLY proceed if the main feature spec contains `Status: Approved`.
 - If status is missing or not `Approved` → STOP.
 - If the spec has `Open questions` with unresolved implementation decisions → STOP.
