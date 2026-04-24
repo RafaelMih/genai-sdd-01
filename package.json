@@ -33,7 +33,7 @@
     "mcp:pokemon": "tsx mcp/pokemon-mcp.ts",
     "index:specs": "tsx scripts/index-specs.ts",
     "test": "vitest --run --exclude 'tests/firestore.rules.test.ts'",
-    "test:rules": "firebase emulators:exec --only firestore \"vitest run tests/firestore.rules.test.ts\"",
+    "test:rules": "firebase emulators:exec --only firestore \"vitest run --config vitest.rules.config.ts tests/firestore.rules.test.ts\"",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
     "e2e:ui": "playwright test --ui"
