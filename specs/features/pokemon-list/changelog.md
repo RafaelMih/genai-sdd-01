@@ -1,8 +1,18 @@
 # Changelog: pokemon-list
 
-## v1.0.0 — 2026-04-24
+## v1.1.0 - 2026-04-24
 
-- Versão inicial: lista de 20 Pokémons no dashboard
-- Sprite construído via URL estática (sem N+1 chamadas de detalhe)
-- Estados: loading, error, success
-- MCP Server para consulta de Pokémons via protocolo Claude
+- Adicionado input de filtro por nome acima da grade
+- Filtro aplicado localmente sobre a lista carregada
+- Debounce de 2 segundos apos a ultima edicao do input
+- Lista completa restaurada quando o input fica vazio
+
+## v1.0.0 - 2026-04-24
+
+- Versao inicial: lista de 20 Pokemons no dashboard
+- Sprite construido via URL estatica
+- Estados: loading, error e success
+- MCP Server para consulta de Pokemons via protocolo Claude
+
+## Archived specs
+- Historical specs moved to `specs/archive/pokemon-list/`: spec-v1.0.0.md

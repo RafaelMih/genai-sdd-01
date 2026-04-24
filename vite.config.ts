@@ -5,7 +5,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  envDir: ".",
+  envDir: "src/config",
   test: {
     environment: "jsdom",
     setupFiles: ["src/test/setup.ts"],

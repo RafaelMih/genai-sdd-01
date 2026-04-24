@@ -1,9 +1,7 @@
-# Context - pokemon-list
+# Feature Spec: Pokemon List
 
-Spec: specs/features/pokemon-list/spec-v1.1.0.md
-
-This file is the canonical short context for AI-assisted work on this feature.
-It summarizes only the current active spec and should stay aligned with the latest approved version.
+Version: 1.1.0
+Status: Approved
 
 ## Objective
 
@@ -53,6 +51,33 @@ Exibir uma lista de Pokemons no dashboard do usuario autenticado, consumindo a P
 - AC8: Quando o filtro e aplicado com um valor nao vazio, o componente exibe apenas os Pokemons cujo nome contenha o valor digitado em qualquer posicao
 - AC9: Quando o filtro e aplicado com o input vazio, o componente volta a exibir a lista completa retornada pela PokeAPI
 
+## API contract
+
+Endpoint:
+
+```txt
+GET https://pokeapi.co/api/v2/pokemon?limit=20&offset=0
+```
+
+O filtro nao dispara novas requisicoes. Ele opera somente sobre a lista carregada com sucesso.
+
+## UI state contract
+
+| Estado | Renderizacao |
+| --- | --- |
+| loading | Texto "Carregando Pokemons..." |
+| error | Texto "Erro ao carregar Pokemons. Tente novamente." |
+| success sem filtro | Input de filtro + grade completa |
+| success com filtro | Input de filtro + grade filtrada |
+
+## Filter contract
+
+- Campo: texto livre para filtro por nome
+- Debounce: 2 segundos apos a ultima edicao do input
+- Correspondencia: substring em qualquer posicao do nome do Pokemon
+- Escopo do filtro: somente a lista carregada da requisicao atual
+- Input vazio: restaura a lista completa
+
 ## Dependencies
 
 - PokeAPI publica: `https://pokeapi.co/api/v2/`
@@ -75,3 +100,7 @@ Exibir uma lista de Pokemons no dashboard do usuario autenticado, consumindo a P
 | Dashboard exibe input de filtro apos sucesso | Integration | AC6 |
 | Dashboard aplica o filtro apenas apos 2 segundos de inatividade | Integration | AC7, AC8 |
 | Dashboard restaura a lista completa quando o input fica vazio | Integration | AC9 |
+
+## Open questions
+
+Nenhuma.
