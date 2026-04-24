@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "spec-rag": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "mcp/spec-rag-mcp.ts"]
+    },
+    "pokemon": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "mcp/pokemon-mcp.ts"]
+    }
+  }
+}

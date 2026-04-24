@@ -1,0 +1,43 @@
+const PT_WORDS = new Set([
+  "não", "também", "está", "estão", "são", "uma", "uns", "umas",
+  "por", "em", "de", "do", "da", "dos", "das", "os", "as", "com",
+  "que", "para", "mais", "como", "mas", "ou", "se", "na", "no",
+  "ao", "já", "muito", "quando", "onde", "esse", "essa", "isso",
+  "ele", "ela", "você", "nós", "eles", "elas", "seu", "sua",
+  "todo", "toda", "todos", "todas", "bem", "assim", "então", "ainda",
+  "depois", "antes", "sempre", "nunca", "apenas", "sobre", "entre",
+  "sem", "até", "ser", "ter", "fazer", "poder", "querer", "saber",
+  "ficou", "foi", "eram", "retorna", "exibe", "chama", "filtra",
+  "informar", "responder", "usar", "chamar", "nenhum", "nenhuma",
+  "tipo", "tipos", "velocidade", "ataque", "defesa", "nome", "número",
+]);
+
+const EN_WORDS = new Set([
+  "the", "and", "with", "is", "are", "was", "were", "has", "have",
+  "from", "this", "that", "these", "those", "will", "would", "could",
+  "should", "must", "may", "can", "not", "but", "or", "if", "when",
+  "where", "which", "who", "what", "how", "all", "any", "each",
+  "every", "both", "few", "more", "most", "other", "than", "then",
+  "there", "here", "its", "our", "your", "their", "my", "his", "her",
+  "we", "they", "you", "he", "she", "it", "at", "by", "for", "in",
+  "of", "on", "to", "an", "as", "do", "go", "so", "be", "no",
+  "returns", "displays", "calls", "filters", "informs", "responds",
+  "uses", "never", "always", "speed", "attack", "defense", "name", "number",
+]);
+
+export function detectLanguage(text: string): "pt-BR" | "en" | "unknown" {
+  const words = text.toLowerCase().match(/\b[a-záàâãéèêíìîóòôõúùûç]+\b/g) ?? [];
+  if (words.length < 5) return "unknown";
+
+  let ptCount = 0;
+  let enCount = 0;
+  for (const w of words) {
+    if (PT_WORDS.has(w)) ptCount++;
+    if (EN_WORDS.has(w)) enCount++;
+  }
+
+  if (ptCount === 0 && enCount === 0) return "unknown";
+  if (ptCount >= enCount * 1.5) return "pt-BR";
+  if (enCount >= ptCount * 1.5) return "en";
+  return "unknown";
+}

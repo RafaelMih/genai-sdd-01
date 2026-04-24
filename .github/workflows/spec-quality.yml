@@ -40,14 +40,14 @@ jobs:
       - name: Verify Firebase CLI
         run: firebase --version
 
-      - name: Lint specs
-        run: npm run spec:lint
+      - name: Spec check (lint + status + trace + coverage + drift + drift-ui)
+        run: npm run spec:check
 
-      - name: Validate traceability
-        run: npm run spec:trace
+      - name: Skill lint
+        run: npm run skill:lint
 
       - name: Run unit tests
-        run: npx vitest run --exclude 'tests/firestore.rules.test.ts'
+        run: npm test
 
       - name: Firestore rules tests
         run: npm run test:rules

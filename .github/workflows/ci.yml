@@ -33,14 +33,21 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Lint specs
-        run: npm run spec:lint
+      - name: Spec check (lint + status + trace + coverage + drift + drift-ui)
+        run: npm run spec:check
 
-      - name: Validate traceability
-        run: npm run spec:trace
+      - name: Skill lint
+        run: npm run skill:lint
 
-      - name: Validate spec status
-        run: npm run spec:status
+      - name: Governance check (summaries e archive atualizados)
+        run: |
+          npm run governance
+          if git status --porcelain | grep -q .; then
+            echo "Arquivos desatualizados detectados após governance."
+            echo "Execute 'npm run governance' localmente e faça commit."
+            git status --short
+            exit 1
+          fi
 
   test:
     name: Tests
