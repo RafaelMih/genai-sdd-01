@@ -36,6 +36,16 @@ Input:
 ```json
 {
   "feature": "<feature-name>",
-  "version": "<resolved-from_version>"
+  "version": "<resolved-from_version>",
+  "detail": "summary"
 }
 ```
+
+Prefer the short context first. Escalate to `detail: "full"` only when the requested edit cannot be performed safely from the summary plus the active spec file.
+
+Additional rules:
+
+- Treat `CONTEXT.md` as the canonical short briefing for the active feature.
+- Keep archived specs in `specs/archive/` out of the working set unless the edit request is explicitly historical.
+- Prefer budget-safe retrieval (`summary`) before opening the full spec.
+- If changing active behavior, ensure the resulting feature can still be summarized cleanly in `CONTEXT.md`.

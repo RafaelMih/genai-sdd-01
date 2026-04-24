@@ -92,13 +92,49 @@ Describe the feature outcome in one sentence.
 - [ ] Implement UI
 - [ ] Implement service logic
 - [ ] Add tests
-- [ ] Update TRACEABILITY.md
+- [ ] Update specs/features/${featureName}/TRACEABILITY.md
 `;
 
   const changelogContent = `# Changelog - ${featureTitle}
 
 ## v${version}
 - Initial feature spec
+`;
+
+  const contextContent = `# Context - ${featureName}
+
+Spec: specs/features/${featureName}/spec-v${version}.md
+
+This file is the canonical short context for AI-assisted work on this feature.
+
+## Objective
+
+Describe the feature outcome in one sentence.
+
+## Scope
+
+- item 1
+- item 2
+
+## Out of scope
+
+- item 1
+- item 2
+
+## Acceptance criteria
+
+- AC1: Replace this with a testable behavior
+- AC2: Replace this with a testable behavior
+
+## Dependencies
+
+- None
+
+## Tests
+
+- unit:
+- integration:
+- e2e:
 `;
 
   const traceabilityContent = `# Traceability - ${featureTitle}
@@ -122,13 +158,14 @@ This folder contains the ${featureName} feature implementation.
 - hooks/
 - services/
 - tests/
-- TRACEABILITY.md
+- Traceability lives in specs/features/${featureName}/TRACEABILITY.md
 `;
 
   await writeFile(path.join(specDir, `spec-v${version}.md`), specContent, "utf8");
   await writeFile(path.join(specDir, `tasks-v${version}.md`), tasksContent, "utf8");
   await writeFile(path.join(specDir, "changelog.md"), changelogContent, "utf8");
-  await writeFile(path.join(srcDir, "TRACEABILITY.md"), traceabilityContent, "utf8");
+  await writeFile(path.join(specDir, "CONTEXT.md"), contextContent, "utf8");
+  await writeFile(path.join(specDir, "TRACEABILITY.md"), traceabilityContent, "utf8");
   await writeFile(path.join(srcDir, "README.md"), readmeContent, "utf8");
 
   // ---- Manifest update (RAG support) ----
@@ -143,6 +180,7 @@ This folder contains the ${featureName} feature implementation.
     type: "feature";
     feature: string;
     version: string;
+    status: "active";
     dependsOn: string[];
   };
 
@@ -158,6 +196,7 @@ This folder contains the ${featureName} feature implementation.
     type: "feature",
     feature: featureName,
     version,
+    status: "active",
     dependsOn: [],
   };
 

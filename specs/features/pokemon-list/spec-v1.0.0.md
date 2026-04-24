@@ -25,7 +25,7 @@ Exibir uma lista de Pokémons no dashboard do usuário autenticado, consumindo a
 ## User flow
 
 1. Usuário autenticado acessa `/dashboard`
-2. O componente `PokemonList` monta e inicia requisição à PokéAPI (limit=20, offset=0)
+2. O componente `PokemonList` monta e inicia requisição à PokéAPI (`limit=20`, `offset=0`)
 3. Durante a requisição, exibe "Carregando Pokémons..."
 4. Quando a requisição retorna com sucesso, exibe a grade com 20 cards
 5. Cada card exibe: número formatado (`#001`), nome capitalizado e sprite frontal
@@ -33,11 +33,11 @@ Exibir uma lista de Pokémons no dashboard do usuário autenticado, consumindo a
 
 ## Acceptance criteria
 
-- AC1: Ao montar o dashboard, o componente `PokemonList` renderiza uma grade com cards de Pokémons
-- AC2: Cada card exibe o número do Pokémon formatado como `#001`, o nome capitalizado (primeira letra maiúscula) e a imagem do sprite frontal
-- AC3: A lista carrega exatamente 20 Pokémons (limit=20, offset=0) na montagem
-- AC4: Durante o carregamento, o componente exibe o texto "Carregando Pokémons..." e nenhum card é renderizado
-- AC5: Se a requisição à PokéAPI falhar, o componente exibe "Erro ao carregar Pokémons. Tente novamente." e nenhum card é renderizado
+- AC1: Quando o componente `PokemonList` monta no dashboard e a requisição à PokéAPI conclui com sucesso, o componente exibe uma grade com cards de Pokémons
+- AC2: Quando a lista de Pokémons é renderizada com sucesso, cada card exibe o número formatado como `#001`, o nome capitalizado com a primeira letra maiúscula e a imagem do sprite frontal
+- AC3: Quando o componente `PokemonList` monta, ele chama a listagem da PokéAPI com `limit=20` e `offset=0` e carrega exatamente 20 Pokémons na resposta de sucesso
+- AC4: Enquanto a requisição inicial à PokéAPI está em andamento, o componente exibe o texto "Carregando Pokémons..." e não renderiza nenhum card
+- AC5: Quando a requisição à PokéAPI falha, o componente exibe "Erro ao carregar Pokémons. Tente novamente." e não renderiza nenhum card
 
 ## API contract
 
@@ -64,7 +64,7 @@ Resposta:
 O ID é extraído da `url` de cada resultado via regex: o último segmento numérico antes da barra final.
 
 ```
-"https://pokeapi.co/api/v2/pokemon/1/" → id = 1
+"https://pokeapi.co/api/v2/pokemon/1/" -> id = 1
 ```
 
 O sprite frontal é construído sem chamada adicional:

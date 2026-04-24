@@ -12,34 +12,35 @@ Validate if a spec is truly implementation-ready using both:
 - qualitative review
 - strict lint-style validation rules
 
-This is NOT a suggestion tool. It must identify concrete failures.
+This is not a suggestion tool. It must identify concrete failures.
 
 ---
 
 ## Hard Rules
 
 - Do NOT generate code
-- Do NOT assume missing behavior — treat as error
+- Do NOT assume missing behavior; treat it as error
 - Do NOT ignore missing contracts
-- Do NOT trust reviewer comments blindly — validate against spec
 - If a required contract is missing, it MUST be reported
 - If behavior is implicit, it MUST be reported
 - If acceptance criteria are not testable, it MUST be reported
+- If `CONTEXT.md` is stale or missing, it MUST be reported
 
 ---
 
 ## Steps
 
-1. Resolve spec path:
-   - `specs/<feature>/<version>/spec.md`
+1. Resolve target files:
+   - `specs/features/<feature>/spec-v<version>.md`
+   - `specs/features/<feature>/CONTEXT.md`
 
-2. Read the FULL spec
+2. Read `CONTEXT.md` first, then read the FULL spec
 
-3. Perform TWO layers of validation:
+3. Perform two layers of validation
 
 ---
 
-## 🔎 LAYER 1 — Qualitative Review
+## Layer 1 - Qualitative Review
 
 Identify:
 
@@ -48,32 +49,26 @@ Identify:
 - missing edge cases
 - untestable acceptance criteria
 - hidden backend assumptions
-- security implications
+- stale canonical context
 
 ---
 
-## 🔒 LAYER 2 — SPEC LINT (MANDATORY)
+## Layer 2 - Spec Lint
 
 Validate the spec against required contracts.
 
-### 1. Navigation & Redirect Lint
+### 1. Navigation and Redirect Lint
 
-Check if ALL of the following exist:
+Check if all of the following exist:
 
 - explicit navigation triggers
 - explicit destination paths
 - explicit navigation type (push vs replace)
 - explicit redirect conditions
 
-If redirect exists but no **dedicated "Redirect contract" section**, report:
+If redirect exists but no dedicated `Redirect contract` section, report:
 
-> [BLOCKER] Missing explicit redirect contract
-
-If redirect behavior is spread across flow/AC without consolidation:
-
-> [WARNING] Redirect logic is fragmented and may cause inconsistency
-
----
+- [BLOCKER] Missing explicit redirect contract
 
 ### 2. Auth Contract Lint
 
@@ -81,13 +76,11 @@ Check if defined:
 
 - authenticated behavior
 - unauthenticated behavior
-- expired session behavior
+- expired or denied behavior when relevant
 
 If missing:
 
-> [BLOCKER] Missing authentication contract
-
----
+- [BLOCKER] Missing authentication contract
 
 ### 3. State Handling Lint
 
@@ -95,14 +88,12 @@ Check if defined:
 
 - loading state
 - error state
-- empty state
+- empty state when relevant
 - success state
 
 If any missing:
 
-> [WARNING] Missing UI state definitions
-
----
+- [WARNING] Missing UI state definitions
 
 ### 4. Data Contract Lint
 
@@ -114,9 +105,7 @@ Check if defined:
 
 If implicit:
 
-> [WARNING] Data contract is implicit
-
----
+- [WARNING] Data contract is implicit
 
 ### 5. Acceptance Criteria Lint
 
@@ -126,30 +115,19 @@ Each AC must be:
 - observable
 - testable
 
-If contains words like:
+If subjective or non-binary:
 
-- "should"
-- "properly"
-- "correctly"
-- "appropriately"
-
-Report:
-
-> [BLOCKER] Untestable acceptance criteria detected
-
----
+- [BLOCKER] Untestable acceptance criteria detected
 
 ### 6. Dependency vs Missing Logic
 
 If something depends on another feature:
 
-- verify if dependency is EXPLICIT
+- verify if dependency is explicit
 
 If not:
 
-> [WARNING] Hidden dependency not declared
-
----
+- [WARNING] Hidden dependency not declared
 
 ### 7. Open Decisions Lint
 
@@ -162,7 +140,19 @@ Search for:
 
 If found:
 
-> [BLOCKER] Unresolved decision remains
+- [BLOCKER] Unresolved decision remains
+
+### 8. Context Sync Lint
+
+Check if `CONTEXT.md` is aligned with the active spec.
+
+If `CONTEXT.md` is missing:
+
+- [WARNING] Missing canonical feature context
+
+If `CONTEXT.md` contradicts the active spec:
+
+- [WARNING] Canonical feature context is stale
 
 ---
 
@@ -170,55 +160,37 @@ If found:
 
 ### 1. Summary
 
-Short, direct evaluation of spec quality
-
----
+Short, direct evaluation of spec quality.
 
 ### 2. Blockers
 
-List ONLY critical issues that prevent implementation
-
-Format:
-
-- [BLOCKER] description
-
----
+List only critical issues that prevent implementation.
 
 ### 3. Warnings
 
-Non-blocking issues, but risky
-
-Format:
-
-- [WARNING] description
-
----
+List non-blocking but risky issues.
 
 ### 4. Ambiguities
 
-List true ambiguities only (multiple interpretations possible)
-
----
+List true ambiguities only.
 
 ### 5. Missing Contracts
 
-Explicitly list missing sections or contracts
+Explicitly list missing sections or contracts.
 
----
+### 6. Context Issues
 
-### 6. Risks
+List mismatches or omissions in `CONTEXT.md`.
 
-Real implementation risks (not spec issues)
+### 7. Risks
 
----
+Real implementation risks only.
 
-### 7. Suggested Improvements
+### 8. Suggested Improvements
 
-Concrete, actionable improvements
+Concrete, actionable improvements.
 
----
-
-### 8. Final Verdict
+### 9. Final Verdict
 
 - Ready for implementation
 - Not ready for implementation

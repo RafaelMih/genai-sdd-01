@@ -1,4 +1,6 @@
-import { getApp, getApps, initializeApp } from "firebase/app";
+import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
+
+const isE2EMode = import.meta.env.VITE_E2E_MODE === "1";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -9,4 +11,14 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+export const app = (
+  isE2EMode
+    ? ({
+        name: "e2e-app",
+        options: firebaseConfig,
+        automaticDataCollectionEnabled: false,
+      } as FirebaseApp)
+    : getApps().length
+      ? getApp()
+      : initializeApp(firebaseConfig)
+) as FirebaseApp;

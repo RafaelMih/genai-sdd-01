@@ -12,3 +12,4 @@ Status: Approved
 - provider: "password" | "google"
 - createdAt: timestamp
 - updatedAt: timestamp
+- phone: string (optional)

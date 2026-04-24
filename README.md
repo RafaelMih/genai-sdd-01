@@ -1,169 +1,50 @@
-# 📘 README — Spec Driven Development com Claude (SDD Real)
+# genai-sdd
 
-Este projeto usa **Spec-Driven Development (SDD)** com Claude, com foco em:
+Projeto de estudo focado em GenAI com Spec-Driven Development (SDD), MCP e validacoes de contrato para reduzir ambiguidade, custo de contexto e drift entre spec, codigo e testes.
 
-- previsibilidade
-- controle
-- redução de alucinação da IA
+## Objetivos
 
----
+- Tornar a spec o contrato principal de implementacao
+- Reduzir alucinacao e ambiguidade em fluxos com IA
+- Medir e controlar melhor o custo de contexto
+- Evoluir um workflow produtivo para features guiadas por spec
 
-# 🧠 Legenda
+## Fluxo atual
 
-| Tipo      | Descrição             |
-| --------- | --------------------- |
-| 🧠 Manual | Você decide / escreve |
-| ⚙️ CLI    | Terminal              |
-| 🤖 Claude | Executado pela IA     |
+1. Criar ou evoluir a spec da feature
+2. Aprovar a spec ativa
+3. Gerar ou atualizar o contexto curto da feature
+4. Implementar usando `CONTEXT.md` e retrieval resumido antes da spec completa
+5. Validar spec, traceabilidade, cobertura, drift e budgets
+6. Arquivar specs superseded quando a feature estabilizar
+7. Validar codigo com typecheck, testes e E2E
 
----
-
-# 🚀 Fluxo Completo (Atualizado)
-
-## 1. Criar Feature
-
-### 🧠 Manual
-
-Definir nome da feature (`auth`, `billing`, etc.)
-
-### ⚙️ CLI
-
-```bash
-mkdir -p specs/features/auth/v1.0.0
-```
-
----
-
-## 2. Criar arquivos da versão
-
-### ⚙️ CLI
-
-```bash
-touch specs/features/auth/v1.0.0/spec.md
-touch specs/features/auth/v1.0.0/tasks.md
-touch specs/features/auth/v1.0.0/traceability.md
-touch specs/features/auth/changelog.md
-```
-
----
-
-## 3. Escrever a Spec
-
-### 🧠 Manual (obrigatório)
-
-```md
-# Feature Spec: Auth
-
-Version: v1.0.0
-Status: Draft
-
-## Objective
-
-Permitir login com email e senha.
-
-## Scope
-
-- login
-
-## Out of scope
-
-- social login
-
-## Acceptance criteria
-
-- AC-01: Login válido redireciona para "/dashboard".
-```
-
----
-
-## 4. Rodar validação de spec
-
-### ⚙️ CLI
+## Comandos principais
 
 ```bash
 npm run spec:check
+npm run context:generate
+npm run ai:context <feature>
+npm run context:report
+npm run specs:archive
+npm run typecheck
+npm run test
+npm run e2e
 ```
 
-### O que valida
+## Fontes canonicas
 
-- estrutura
-- semântica
-- status da spec
+- Processo global e padroes: `.claude/GLOBAL-STANDARDS.md`
+- Regras de execucao para Claude: `CLAUDE.md`
+- Spec ativa por feature: `specs/features/<feature>/spec-vX.Y.Z.md`
+- Contexto curto por feature: `specs/features/<feature>/CONTEXT.md`
+- Traceabilidade por feature: `specs/features/<feature>/TRACEABILITY.md`
 
----
+## Observacoes
 
-## 5. Revisar Spec (obrigatório)
-
-### 🤖 Claude
-
-```txt
-/review-spec auth v1.0.0
-```
-
----
-
-## 6. Resolver Spec
-
-### 🤖 Claude
-
-```txt
-/resolve-spec auth v1.0.0
-```
-
----
-
-## 7. Aprovar Spec
-
-### 🧠 Manual
-
-```md
-Status: Approved
-```
-
----
-
-## 8. Implementar Feature
-
-### 🤖 Claude
-
-```txt
-/implement-spec auth v1.0.0
-```
-
----
-
-## 9. Validar
-
-### ⚙️ CLI
-
-```bash
-npm run spec:check
-npm test
-```
-
----
-
-## 10. Commit
-
-```bash
-git add .
-git commit -m "feat(auth): v1.0.0"
-```
-
----
-
-## 11. Deploy
-
-```bash
-npm run build
-firebase deploy
-```
-
----
-
-# 🎯 Objetivo
-
-- a spec é contrato
-- a IA executa
-- o CLI valida
-- o CI impede erro
+- `spec:check` valida lint, status, traceabilidade, cobertura de AC e drift tecnico
+- `ai:context` usa budget de contexto, warnings nao bloqueantes e cache local
+- O MCP de specs responde em modo resumido por padrao e registra telemetria
+- `specs:archive` move specs superseded para `specs/archive/<feature>/`
+- `context:report` mostra tokens estimados, duracao, cache hits e budget warnings
+- A suite E2E usa Playwright com ambiente local previsivel (`npm run dev:e2e`)

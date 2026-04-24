@@ -52,11 +52,11 @@ Definir o comportamento de um agente especializado em Pokémons que usa as ferra
 
 ## Acceptance criteria
 
-- AC1: Quando ativado sem filtro, o agente chama `list_pokemons(limit=20, offset=0)` e exibe os resultados formatados em pt-BR
-- AC2: Quando o usuário pede "mais" ou "próxima página", o agente chama `list_pokemons` com offset incrementado em 20 e exibe os próximos resultados
-- AC3: Quando o usuário pede filtro por prefixo de nome, o agente chama `list_pokemons(limit=100, offset=0)`, filtra localmente pelo prefixo informado (case-insensitive) e exibe apenas os correspondentes
+- AC1: Quando o agente é ativado sem filtro explícito de nome ou detalhe, ele chama `list_pokemons(limit=20, offset=0)` e exibe os resultados formatados em pt-BR
+- AC2: Quando o usuário pede "mais" ou "próxima página" após uma listagem anterior, o agente chama `list_pokemons` com offset incrementado em 20 e exibe os próximos resultados
+- AC3: Quando o usuário pede filtro por prefixo de nome, o agente chama `list_pokemons(limit=100, offset=0)`, filtra localmente pelo prefixo informado com comparação case-insensitive e exibe apenas os correspondentes
 - AC4: Quando o usuário pede detalhes de um Pokémon específico por nome ou número, o agente chama `get_pokemon(name_or_id)` e exibe id, nome, tipos, stats e URL do sprite
-- AC5: Todas as respostas do agente são em pt-BR; nomes de Pokémon e termos técnicos (HP, JSON) não são traduzidos
+- AC5: Quando o agente responde a qualquer fluxo definido nesta spec, a resposta final exibe texto em pt-BR e preserva sem tradução os nomes de Pokémon e termos técnicos como `HP` e `JSON`
 
 ## Contracts
 
@@ -67,7 +67,7 @@ Definir o comportamento de um agente especializado em Pokémons que usa as ferra
 | `list_pokemons` | `limit: number`, `offset: number` | `Array<{ name, url }>`                   |
 | `get_pokemon`   | `name_or_id: string`              | `{ id, name, sprite, types[], stats[] }` |
 
-### Formato de exibição — listagem
+### Formato de exibição - listagem
 
 ```
 | #   | Nome        | Sprite |
@@ -75,10 +75,10 @@ Definir o comportamento de um agente especializado em Pokémons que usa as ferra
 | #001 | Bulbasaur  | URL    |
 ```
 
-### Formato de exibição — detalhe
+### Formato de exibição - detalhe
 
 ```
-#025 — Pikachu
+#025 - Pikachu
 Tipos: electric
 HP: 35 | Ataque: 55 | Defesa: 40 | Velocidade: 90
 Sprite: https://...

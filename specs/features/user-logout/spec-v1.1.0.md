@@ -11,7 +11,7 @@ Allow an authenticated user to end their Firebase Auth session. After logout, th
 
 - `LogoutButton` component: renders a button that triggers logout
 - Firebase Auth `signOut` call
-- Loading state during `signOut` (button disabled, label "Saindo…")
+- Loading state during `signOut` (button disabled, label "Saindo...")
 - Redirect to `/login` with `replace` navigation after successful logout
 - Error handling: if `signOut` fails, display an error message below the button
 
@@ -27,7 +27,7 @@ Allow an authenticated user to end their Firebase Auth session. After logout, th
 ## User flow
 
 1. Authenticated user clicks the logout button (label: "Sair")
-2. Button is disabled and its label changes to "Saindo…"
+2. Button is disabled and its label changes to "Saindo..."
 3. System calls `signOut(auth)` from the Firebase Auth SDK
 4. If `signOut` succeeds:
    - Firebase `onAuthStateChanged` fires with `null`
@@ -40,16 +40,16 @@ Allow an authenticated user to end their Firebase Auth session. After logout, th
 
 ## Acceptance criteria
 
-- AC1: Clicking the logout button calls `signOut(auth)`
-- AC2: While `signOut` is in progress, the button label is "Saindo…" and the button is disabled
-- AC3: After successful `signOut`, the app navigates to `/login` using `replace` navigation
-- AC4: After successful logout, `onAuthStateChanged` fires with `null`; the app user state (via `useAuthState`) becomes `null`
-- AC5: If `signOut` fails, the error message "Erro ao sair da conta." is displayed below the logout button and the button is re-enabled with label "Sair"
-- AC6: After successful logout, pressing browser back from `/login` does not return to the page from which logout was triggered
+- AC1: When the authenticated user clicks the logout button, the component calls `signOut(auth)`
+- AC2: While the `signOut` request is in progress, the button displays the label "Saindo..." and remains disabled
+- AC3: When `signOut` succeeds, the app navigates to `/login` using `replace` navigation
+- AC4: When `signOut` succeeds and Firebase emits `onAuthStateChanged(null)`, `useAuthState` returns `null` to consuming components
+- AC5: When `signOut` fails, the component displays the error message "Erro ao sair da conta." below the logout button and re-enables the button with label "Sair"
+- AC6: When logout succeeds and the app has navigated to `/login` with `replace`, pressing browser back from `/login` does not return to the page from which logout was triggered
 
 ## Auth state contract
 
-`LogoutButton` is rendered only inside auth-gated layouts. The component itself does not manage auth state routing — that is the responsibility of route guards (declared dependency).
+`LogoutButton` is rendered only inside auth-gated layouts. The component itself does not manage auth state routing; that is the responsibility of route guards (declared dependency).
 
 | Auth state  | `LogoutButton` behavior                              |
 | ----------- | ---------------------------------------------------- |
@@ -70,11 +70,10 @@ Navigation is performed via the router's `navigate` function (not a hard page re
 | State      | Button label | Button disabled | Error message          |
 | ---------- | ------------ | --------------- | ---------------------- |
 | Default    | Sair         | No              | Hidden                 |
-| Submitting | Saindo…      | Yes             | Hidden                 |
+| Submitting | Saindo...    | Yes             | Hidden                 |
 | Error      | Sair         | No              | Visible (below button) |
 
 - Error message lifecycle: displayed after a failed `signOut`; cleared when a new logout attempt begins
-- Button label uses Unicode ellipsis U+2026 in submitting state: "Saindo…" (not "Saindo...")
 - Inline error is rendered immediately below the logout button
 
 ## Error messages contract
@@ -101,22 +100,22 @@ No additional localStorage or cookie cleanup is required by this feature. App-le
 ## Dependencies
 
 - Firebase Auth SDK: `signOut`, `AuthError.code`
-- `useAuthState` hook — provides reactive auth state to components
-- Route guard for authenticated routes — ensures unauthenticated users cannot reach protected pages after logout; owned by the auth feature
-- Route `/login` — must exist and be reachable
+- `useAuthState` hook -> provides reactive auth state to components
+- Route guard for authenticated routes -> ensures unauthenticated users cannot reach protected pages after logout; owned by the auth feature
+- Route `/login` -> must exist and be reachable
 
 ## Tests
 
-| Caso de teste                                                       | Tipo        | ACs cobertos |
-| ------------------------------------------------------------------- | ----------- | ------------ |
-| Clicar no botão chama `signOut(auth)`                               | Unit        | AC1          |
-| Botão mostra "Saindo…" e fica desabilitado durante o `signOut`      | Integration | AC2          |
-| Logout bem-sucedido navega para /login com replace                  | Integration | AC3          |
-| Após logout, `useAuthState` retorna null                            | Integration | AC4          |
-| Falha no `signOut`: mostra "Erro ao sair da conta." abaixo do botão | Integration | AC5          |
-| Falha no `signOut`: botão reabilitado com label "Sair"              | Integration | AC5          |
-| Browser back de /login após logout não retorna à página de origem   | Integration | AC6          |
-| `auth/network-request-failed` → "Erro de conexão. Tente novamente." | Unit        | AC5          |
+| Caso de teste                                                        | Tipo        | ACs cobertos |
+| -------------------------------------------------------------------- | ----------- | ------------ |
+| Clicar no botão chama `signOut(auth)`                                | Unit        | AC1          |
+| Botão mostra "Saindo..." e fica desabilitado durante o `signOut`     | Integration | AC2          |
+| Logout bem-sucedido navega para /login com replace                   | Integration | AC3          |
+| Após logout, `useAuthState` retorna null                             | Integration | AC4          |
+| Falha no `signOut`: mostra "Erro ao sair da conta." abaixo do botão  | Integration | AC5          |
+| Falha no `signOut`: botão reabilitado com label "Sair"               | Integration | AC5          |
+| Browser back de /login após logout não retorna à página de origem    | Integration | AC6          |
+| `auth/network-request-failed` -> "Erro de conexão. Tente novamente." | Unit        | AC5          |
 
 ## Open questions
 

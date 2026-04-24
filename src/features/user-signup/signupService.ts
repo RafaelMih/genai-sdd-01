@@ -2,6 +2,9 @@ import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth } from "../../firebase/auth";
 import { db } from "../../firebase/firestore";
+import { e2eCreateAccount } from "../auth/e2eAuth";
+
+const isE2EMode = import.meta.env.VITE_E2E_MODE === "1";
 
 export async function createAccount(
   name: string,
@@ -9,6 +12,11 @@ export async function createAccount(
   password: string,
   phone?: string,
 ): Promise<void> {
+  if (isE2EMode) {
+    await e2eCreateAccount({ name, email, password, phone });
+    return;
+  }
+
   const { user } = await createUserWithEmailAndPassword(auth, email, password);
   try {
     const profileData: Record<string, unknown> = {

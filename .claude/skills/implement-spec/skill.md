@@ -18,7 +18,16 @@ Before reading, planning, editing, or testing code, call:
 
 `retrieve_relevant_specs`
 
-Required input:
+Preferred first call:
+
+```json
+{
+  "feature": "<feature-name>",
+  "detail": "summary"
+}
+```
+
+Required input when full detail is needed:
 
 ```json
 {
@@ -38,8 +47,13 @@ Optional input when version is provided:
 ## Rules
 
 - ALWAYS call `retrieve_relevant_specs` first.
+- Prefer the `summary` detail mode first and expand to `full` only if the short context is insufficient.
+- Treat `summary` as the default budget-safe mode and escalate to `full` only when required by a concrete missing detail.
 - If `version` is provided, it MUST be passed to the tool.
 - ONLY use specs returned by RAG as source of truth.
+- Prefer `specs/features/<feature>/CONTEXT.md` plus targeted spec sections over loading full documents by default.
+- Archived specs in `specs/archive/` are outside the default working set and MUST be ignored unless the task is explicitly historical.
+- Respect cache and budget signals from the context tooling; warnings are not blockers, but they must shape retrieval choices.
 - ONLY proceed if the main feature spec contains `Status: Approved`.
 - If status is missing or not `Approved` → STOP.
 - If the spec has `Open questions` with unresolved implementation decisions → STOP.
@@ -55,10 +69,10 @@ Optional input when version is provided:
 - Path convention:
 
 ```txt
-specs/features/<feature>/traceability-v<version>.md
+specs/features/<feature>/TRACEABILITY.md
 ```
 
-- Traceability version MUST match the spec version used.
+- The `Spec:` line inside `TRACEABILITY.md` MUST point to the active spec version.
 
 - Do NOT create or update traceability files under:
 
@@ -80,6 +94,7 @@ specs/features/<feature>/
 1. Call `retrieve_relevant_specs` with:
    - feature (required)
    - version (if provided)
+   - prefer `detail: "summary"` first
 
 2. Identify the main feature spec from the returned documents.
 
@@ -111,7 +126,7 @@ specs/features/<feature>/
 9. Add or update the traceability file at:
 
 ```txt
-specs/features/<feature>/traceability-v<version>.md
+specs/features/<feature>/TRACEABILITY.md
 ```
 
 10. Report result.

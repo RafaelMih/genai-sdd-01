@@ -11,6 +11,7 @@ Transform acceptance criteria into test cases without inventing behavior.
 
 ## Required inputs
 
+- `CONTEXT.md`
 - active feature spec
 - TRACEABILITY.md
 - relevant implementation files
@@ -18,7 +19,7 @@ Transform acceptance criteria into test cases without inventing behavior.
 
 ## Procedure
 
-1. Read only the active spec.
+1. Read `CONTEXT.md` first, then open the active spec only for the sections needed to generate the tests safely.
 2. Extract every acceptance criterion.
 3. For each criterion:
    - identify expected user-visible behavior

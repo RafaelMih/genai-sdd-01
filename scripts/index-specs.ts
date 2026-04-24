@@ -11,6 +11,7 @@ type SpecManifestEntry = {
   type: SpecType;
   feature?: string;
   version?: string;
+  status?: "active" | "superseded" | "archived";
   dependsOn?: string[];
 };
 
@@ -181,7 +182,7 @@ function chunkSection(
 // -------------------- MAIN --------------------
 
 async function main() {
-  const manifest = await loadManifest();
+  const manifest = (await loadManifest()).filter((entry) => entry.status !== "archived");
 
   const chunks: SpecChunk[] = [];
 
