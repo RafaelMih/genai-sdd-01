@@ -37,11 +37,27 @@ When other docs repeat the same topic, prefer this file as the source of truth.
 
 ## AI Context
 
-- Load the active feature context before expanding to full specs.
-- Prefer `CONTEXT.md` plus targeted sections over full-document loading.
-- Use full spec retrieval only when the short context is insufficient.
-- `summary` is the default retrieval mode; `full` should be explicit and exceptional.
-- `chunked` context should stay within the configured chunk/token budget whenever possible.
-- Budget overages are warning-only for now, but they must be reported via telemetry.
-- Repeated context retrieval should prefer the local cache when source files have not changed.
-- Run `npm run specs:archive` periodically so superseded specs do not leak into the active mental model.
+### Escalation order (lazy loading — never skip steps)
+
+1. **CONTEXT.md** — always first; ~300–500 tokens; covers objective, scope, and ACs
+2. **summary mode** — when CONTEXT.md is not enough; ~1400 tokens max; key spec sections only
+3. **chunked mode** — when specific details are needed; ~900 tokens per chunk, max 6 chunks
+4. **full mode** — only when all other modes are insufficient; 4000 tokens max; hard block above 6000 tokens
+
+Never load `full` as a first step. Never skip steps.
+
+### Budget table
+
+| Mode | Soft limit | Hard block |
+|------|-----------|------------|
+| CONTEXT.md | 500t | — |
+| summary | 1400t | — |
+| chunked | 900t/chunk × 6 | — |
+| full | 4000t | 6000t |
+
+### Cache and telemetry
+
+- Repeated context retrieval must prefer the local cache when source files have not changed.
+- Cache fingerprint includes TRACEABILITY.md and changelog.md in addition to spec files.
+- Budget overages are reported via telemetry; full mode overages above the hard block are rejected.
+- Run `npm run specs:archive` periodically so superseded specs do not leak into the active working set.

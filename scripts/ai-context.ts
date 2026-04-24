@@ -33,7 +33,7 @@ type SpecChunk = {
 
 const CHUNKS_PATH = path.resolve("specs", ".index", "spec-chunks.json");
 const MANIFEST_PATH = path.resolve("specs", ".index", "spec-manifest.json");
-const MAX_CONTEXT_CHUNKS = 8;
+const MAX_CONTEXT_CHUNKS = 6;
 const MAX_CONTEXT_TOKENS = 900;
 const SUMMARY_BUDGET_TOKENS = 1400;
 
@@ -169,7 +169,13 @@ async function main() {
   const relatedSpecPaths = manifest
     .filter((entry) => relatedSpecIds.has(entry.id))
     .map((entry) => path.resolve(entry.path));
-  const cacheFiles = [CHUNKS_PATH, MANIFEST_PATH, ...relatedSpecPaths];
+  const cacheFiles = [
+    CHUNKS_PATH,
+    MANIFEST_PATH,
+    ...relatedSpecPaths,
+    path.resolve("specs", "features", feature, "TRACEABILITY.md"),
+    path.resolve("specs", "features", feature, "changelog.md"),
+  ];
   if (featureContext) {
     cacheFiles.push(path.resolve("specs", "features", feature, "CONTEXT.md"));
   }

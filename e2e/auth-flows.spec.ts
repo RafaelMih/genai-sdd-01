@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const pokemonListResponse = {
   results: [
@@ -7,7 +7,7 @@ const pokemonListResponse = {
   ],
 };
 
-async function mockPokemonApi(page: Parameters<typeof test>[0]["page"]) {
+async function mockPokemonApi(page: Page) {
   await page.route("https://pokeapi.co/api/v2/pokemon?limit=20&offset=0", async (route) => {
     await route.fulfill({
       status: 200,
@@ -60,6 +60,43 @@ test("login valido redireciona para o dashboard", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByText("Ivysaur")).toBeVisible();
+});
+
+test("acesso ao dashboard sem autenticacao redireciona para login", async ({ page }) => {
+  await page.goto("/dashboard");
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { name: "Entrar" })).toBeVisible();
+});
+
+test("login com credenciais invalidas exibe mensagem de erro", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByLabel("E-mail").fill("invalido@naoexiste.com");
+  await page.locator("#password").fill("senhaerrada");
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await expect(page.getByText("E-mail ou senha incorretos.")).toBeVisible();
+  await expect(page).toHaveURL(/\/login$/);
+});
+
+test("signup com email ja registrado exibe mensagem de erro", async ({ page }) => {
+  await page.goto("/signup");
+  await page.getByLabel("Nome").fill("Gary Oak");
+  await page.getByLabel("E-mail").fill("gary@test.com");
+  await page.locator("#password").fill("eevee1234");
+  await page.locator("#confirmPassword").fill("eevee1234");
+  await page.getByRole("button", { name: "Criar conta" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+
+  await page.getByTestId("logout-button").click();
+  await expect(page).toHaveURL(/\/login$/);
+
+  await page.goto("/signup");
+  await page.getByLabel("Nome").fill("Gary Oak 2");
+  await page.getByLabel("E-mail").fill("gary@test.com");
+  await page.locator("#password").fill("eevee1234");
+  await page.locator("#confirmPassword").fill("eevee1234");
+  await page.getByRole("button", { name: "Criar conta" }).click();
+  await expect(page.getByText("Este e-mail já está em uso.")).toBeVisible();
+  await expect(page).toHaveURL(/\/signup$/);
 });
 
 test("logout redireciona para login e bloqueia retorno ao dashboard", async ({ page }) => {

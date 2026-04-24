@@ -26,6 +26,7 @@ type SpecManifestEntry = {
 const MANIFEST_PATH = path.resolve("specs", ".index", "spec-manifest.json");
 const SUMMARY_BUDGET_TOKENS = 1400;
 const FULL_BUDGET_TOKENS = 4000;
+const FULL_BUDGET_HARD_BLOCK = 6000;
 
 async function loadManifest(): Promise<SpecManifestEntry[]> {
   const raw = await readFile(MANIFEST_PATH, "utf8");
@@ -142,7 +143,12 @@ async function retrieveRelevantSpecs(
   const relatedIds = new Set<string>([featureSpec.id, ...(featureSpec.dependsOn ?? [])]);
   const relatedEntries = manifest.filter((entry) => relatedIds.has(entry.id));
   const featureContext = await readFeatureContext(feature);
-  const cacheFiles = [MANIFEST_PATH, ...relatedEntries.map((entry) => path.resolve(entry.path))];
+  const cacheFiles = [
+    MANIFEST_PATH,
+    ...relatedEntries.map((entry) => path.resolve(entry.path)),
+    path.resolve("specs", "features", feature, "TRACEABILITY.md"),
+    path.resolve("specs", "features", feature, "changelog.md"),
+  ];
   if (featureContext) {
     cacheFiles.push(path.resolve("specs", "features", feature, "CONTEXT.md"));
   }
@@ -196,6 +202,12 @@ ${detail === "full" ? content : buildSummary(entry, content)}`,
   const estimatedTokens = Math.ceil(payload.split(/\s+/).filter(Boolean).length * 1.3);
   const budgetLimit = detail === "full" ? FULL_BUDGET_TOKENS : SUMMARY_BUDGET_TOKENS;
   const budgetExceeded = estimatedTokens > budgetLimit;
+
+  if (detail === "full" && estimatedTokens > FULL_BUDGET_HARD_BLOCK) {
+    throw new Error(
+      `Full mode hard block: estimated ${estimatedTokens} tokens exceeds the ${FULL_BUDGET_HARD_BLOCK}-token limit. Use chunked or summary mode instead.`,
+    );
+  }
 
   if (!featureContext) {
     await writeContextCache({
