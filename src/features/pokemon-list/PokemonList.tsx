@@ -5,17 +5,11 @@ export function PokemonList() {
   const { pokemons, loading, error } = usePokemonList();
 
   if (loading) {
-    return (
-      <p className="px-6 text-sm text-zinc-500">Carregando Pokémons...</p>
-    );
+    return <p className="px-6 text-sm text-zinc-500">Carregando Pokémons...</p>;
   }
 
   if (error) {
-    return (
-      <p className="px-6 text-sm text-red-600">
-        Erro ao carregar Pokémons. Tente novamente.
-      </p>
-    );
+    return <p className="px-6 text-sm text-red-600">Erro ao carregar Pokémons. Tente novamente.</p>;
   }
 
   return (

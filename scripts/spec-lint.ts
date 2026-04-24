@@ -55,12 +55,7 @@ const sectionAliases: Record<string, string[]> = {
   ],
   dependencies: ["dependencies", "depends on", "dependency", "dependências"],
   tests: ["tests", "test strategy", "test cases", "testing", "testes"],
-  "open questions": [
-    "open questions",
-    "open question",
-    "questões em aberto",
-    "questão em aberto",
-  ],
+  "open questions": ["open questions", "open question", "questões em aberto", "questão em aberto"],
 };
 
 const vagueTermsWarn = [
@@ -78,13 +73,7 @@ const vagueTermsWarn = [
   "user-friendly",
 ];
 
-const unresolvedMarkersBlocker = [
-  "tbd",
-  "to decide",
-  "undecided",
-  "decide later",
-  "placeholder",
-];
+const unresolvedMarkersBlocker = ["tbd", "to decide", "undecided", "decide later", "placeholder"];
 
 const unresolvedMarkersWarn = [
   "todo",
@@ -142,16 +131,12 @@ function parseVersionFromPath(file: string): [number, number, number] | null {
 function extractFeatureFromPath(file: string): string | null {
   const normalized = file.replace(/\\/g, "/");
 
-  const nested = normalized.match(
-    /specs\/features\/([^/]+)\/v\d+\.\d+\.\d+\/spec\.md$/i,
-  );
+  const nested = normalized.match(/specs\/features\/([^/]+)\/v\d+\.\d+\.\d+\/spec\.md$/i);
   if (nested) {
     return nested[1];
   }
 
-  const flat = normalized.match(
-    /specs\/features\/([^/]+)\/spec-v\d+\.\d+\.\d+\.md$/i,
-  );
+  const flat = normalized.match(/specs\/features\/([^/]+)\/spec-v\d+\.\d+\.\d+\.md$/i);
   if (flat) {
     return flat[1];
   }
@@ -159,10 +144,7 @@ function extractFeatureFromPath(file: string): string | null {
   return null;
 }
 
-function compareVersions(
-  a: [number, number, number],
-  b: [number, number, number],
-): number {
+function compareVersions(a: [number, number, number], b: [number, number, number]): number {
   if (a[0] !== b[0]) return a[0] - b[0];
   if (a[1] !== b[1]) return a[1] - b[1];
   return a[2] - b[2];
@@ -182,9 +164,7 @@ function collectSpecFiles(dir: string): SpecFileInfo[] {
     }
 
     const isVersionedSpecFile = /spec-v\d+\.\d+\.\d+\.md$/i.test(entry.name);
-    const isNestedVersionSpec = /\/v\d+\.\d+\.\d+\/spec\.md$/i.test(
-      normalizedFull,
-    );
+    const isNestedVersionSpec = /\/v\d+\.\d+\.\d+\/spec\.md$/i.test(normalizedFull);
 
     if (!isVersionedSpecFile && !isNestedVersionSpec) continue;
 
@@ -254,30 +234,19 @@ function getSections(text: string): Record<string, string> {
   return sections;
 }
 
-function pushIssue(
-  issues: LintIssue[],
-  severity: Severity,
-  message: string,
-): void {
+function pushIssue(issues: LintIssue[], severity: Severity, message: string): void {
   issues.push({ severity, message });
 }
 
 function lintTopLevel(text: string, issues: LintIssue[]): void {
   for (const rule of requiredTopLevelPatterns) {
     if (!rule.pattern.test(text)) {
-      pushIssue(
-        issues,
-        rule.severity,
-        `Missing required pattern: ${rule.name}`,
-      );
+      pushIssue(issues, rule.severity, `Missing required pattern: ${rule.name}`);
     }
   }
 }
 
-function lintRequiredSections(
-  sections: Record<string, string>,
-  issues: LintIssue[],
-): void {
+function lintRequiredSections(sections: Record<string, string>, issues: LintIssue[]): void {
   const alwaysRequired = [
     "objective",
     "scope",
@@ -289,11 +258,7 @@ function lintRequiredSections(
 
   for (const canonicalName of alwaysRequired) {
     if (!sections[canonicalName] || !sections[canonicalName].trim()) {
-      pushIssue(
-        issues,
-        "BLOCKER",
-        `Missing required section: "## ${canonicalName}"`,
-      );
+      pushIssue(issues, "BLOCKER", `Missing required section: "## ${canonicalName}"`);
     }
   }
 }
@@ -321,22 +286,14 @@ function lintVagueLanguage(text: string, issues: LintIssue[]): void {
     for (const marker of unresolvedMarkersWarn) {
       const re = new RegExp(`\\b${escapeRegExp(marker)}\\b`, "i");
       if (re.test(text)) {
-        pushIssue(
-          issues,
-          "WARN",
-          `Potential unresolved marker found: "${marker}"`,
-        );
+        pushIssue(issues, "WARN", `Potential unresolved marker found: "${marker}"`);
       }
     }
   }
 
   for (const pattern of subjectivePatternsWarn) {
     if (pattern.test(text)) {
-      pushIssue(
-        issues,
-        "WARN",
-        `Subjective or unverifiable wording found: ${pattern}`,
-      );
+      pushIssue(issues, "WARN", `Subjective or unverifiable wording found: ${pattern}`);
     }
   }
 }
@@ -368,10 +325,7 @@ function extractAcceptanceCriteriaItems(acText: string): string[] {
   return items;
 }
 
-function lintAcceptanceCriteria(
-  acText: string | undefined,
-  issues: LintIssue[],
-): void {
+function lintAcceptanceCriteria(acText: string | undefined, issues: LintIssue[]): void {
   if (!acText || !acText.trim()) {
     pushIssue(issues, "BLOCKER", "Acceptance criteria block not found.");
     return;
@@ -380,11 +334,7 @@ function lintAcceptanceCriteria(
   const items = extractAcceptanceCriteriaItems(acText);
 
   if (items.length === 0) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      "Acceptance criteria block has no list items.",
-    );
+    pushIssue(issues, "BLOCKER", "Acceptance criteria block has no list items.");
     return;
   }
 
@@ -400,19 +350,11 @@ function lintAcceptanceCriteria(
         item,
       )
     ) {
-      pushIssue(
-        issues,
-        "WARN",
-        `${label}: contains subjective wording: "${item}"`,
-      );
+      pushIssue(issues, "WARN", `${label}: contains subjective wording: "${item}"`);
     }
 
     if (!observableBehaviorPattern.test(item)) {
-      pushIssue(
-        issues,
-        "WARN",
-        `${label}: may not define observable behavior clearly: "${item}"`,
-      );
+      pushIssue(issues, "WARN", `${label}: may not define observable behavior clearly: "${item}"`);
     }
 
     if (!explicitContextPattern.test(item)) {
@@ -433,10 +375,7 @@ function lintAcceptanceCriteria(
   });
 }
 
-function lintTestsSection(
-  testsText: string | undefined,
-  issues: LintIssue[],
-): void {
+function lintTestsSection(testsText: string | undefined, issues: LintIssue[]): void {
   if (!testsText || !testsText.trim()) {
     pushIssue(issues, "BLOCKER", "Tests section not found.");
     return;
@@ -453,10 +392,7 @@ function lintTestsSection(
   }
 }
 
-function lintOpenQuestions(
-  sections: Record<string, string>,
-  issues: LintIssue[],
-): void {
+function lintOpenQuestions(sections: Record<string, string>, issues: LintIssue[]): void {
   const openQuestions = sections["open questions"];
 
   if (!openQuestions) return;

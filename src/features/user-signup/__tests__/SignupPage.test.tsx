@@ -29,7 +29,7 @@ function renderPage() {
   render(
     <MemoryRouter>
       <SignupPage />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -59,7 +59,7 @@ describe("SignupPage", () => {
     const { container } = render(
       <MemoryRouter>
         <SignupPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(container.firstChild).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();

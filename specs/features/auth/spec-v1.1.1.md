@@ -69,16 +69,16 @@ Allow users to sign in with an existing account using email and password.
 
 ## Error messages contract
 
-| Firebase error code          | Mensagem exibida ao usuário (pt-BR)                              |
-|------------------------------|------------------------------------------------------------------|
-| auth/user-not-found          | E-mail ou senha incorretos.                                      |
-| auth/wrong-password          | E-mail ou senha incorretos.                                      |
-| auth/invalid-credential      | E-mail ou senha incorretos.                                      |
-| auth/invalid-email           | E-mail inválido                                                  |
-| auth/user-disabled           | Esta conta foi desativada. Entre em contato com o suporte.       |
-| auth/too-many-requests       | Muitas tentativas. Tente novamente mais tarde.                   |
-| auth/network-request-failed  | Falha na conexão. Verifique sua internet e tente novamente.      |
-| (todos os demais)            | Ocorreu um erro inesperado. Tente novamente.                     |
+| Firebase error code         | Mensagem exibida ao usuário (pt-BR)                         |
+| --------------------------- | ----------------------------------------------------------- |
+| auth/user-not-found         | E-mail ou senha incorretos.                                 |
+| auth/wrong-password         | E-mail ou senha incorretos.                                 |
+| auth/invalid-credential     | E-mail ou senha incorretos.                                 |
+| auth/invalid-email          | E-mail inválido                                             |
+| auth/user-disabled          | Esta conta foi desativada. Entre em contato com o suporte.  |
+| auth/too-many-requests      | Muitas tentativas. Tente novamente mais tarde.              |
+| auth/network-request-failed | Falha na conexão. Verifique sua internet e tente novamente. |
+| (todos os demais)           | Ocorreu um erro inesperado. Tente novamente.                |
 
 > `auth/user-not-found` e `auth/wrong-password` mapeiam para a mesma mensagem intencionalmente
 > para evitar enumeração de contas.
@@ -90,16 +90,19 @@ Allow users to sign in with an existing account using email and password.
 ## Validation contract
 
 **Email**
+
 - Required: non-empty string; failure message → "E-mail é obrigatório" (AC1)
 - Format: must match `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`; failure message → "E-mail inválido" (AC2)
 - Validations run in order; first failure stops the chain
 
 **Password**
+
 - Required: non-empty string; failure message → "Senha é obrigatória" (AC3)
 - Minimum length: ≥ 6 characters; failure message → "A senha deve ter pelo menos 6 caracteres" (AC4)
 - Validations run in order; first failure stops the chain
 
 **Trigger rules**
+
 - Validation runs on form submit
 - Validation also runs on individual field blur, but only after the first submit attempt
   (standard react-hook-form `mode: "onSubmit"` + `reValidateMode: "onChange"` or equivalent)
@@ -142,21 +145,21 @@ responsibility of a separate onboarding or sign-up feature.
 
 ## Tests
 
-| Caso de teste                                        | Tipo        | ACs cobertos |
-|------------------------------------------------------|-------------|--------------|
-| Validação de email vazio                             | Unit        | AC1          |
-| Validação de email que não corresponde ao padrão     | Unit        | AC2          |
-| Validação de senha vazia                             | Unit        | AC3          |
-| Validação de senha com menos de 6 caracteres         | Unit        | AC4          |
-| Erro de credenciais inválidas (wrong-password)       | Integration | AC5          |
-| Erro de conta desativada                             | Integration | AC6          |
-| Erro de muitas tentativas                            | Integration | AC7          |
-| Erro de rede                                         | Integration | AC8          |
-| Erro genérico do Firebase                            | Integration | AC9          |
-| Login bem-sucedido redireciona para /dashboard       | Integration | AC10         |
-| Estado de carregamento: botão desabilitado e label   | Integration | AC11 (entry) |
-| Estado de carregamento encerra após erro Firebase    | Integration | AC11 (exit)  |
-| Redirecionamento de usuário já autenticado           | Integration | AC12         |
+| Caso de teste                                      | Tipo        | ACs cobertos |
+| -------------------------------------------------- | ----------- | ------------ |
+| Validação de email vazio                           | Unit        | AC1          |
+| Validação de email que não corresponde ao padrão   | Unit        | AC2          |
+| Validação de senha vazia                           | Unit        | AC3          |
+| Validação de senha com menos de 6 caracteres       | Unit        | AC4          |
+| Erro de credenciais inválidas (wrong-password)     | Integration | AC5          |
+| Erro de conta desativada                           | Integration | AC6          |
+| Erro de muitas tentativas                          | Integration | AC7          |
+| Erro de rede                                       | Integration | AC8          |
+| Erro genérico do Firebase                          | Integration | AC9          |
+| Login bem-sucedido redireciona para /dashboard     | Integration | AC10         |
+| Estado de carregamento: botão desabilitado e label | Integration | AC11 (entry) |
+| Estado de carregamento encerra após erro Firebase  | Integration | AC11 (exit)  |
+| Redirecionamento de usuário já autenticado         | Integration | AC12         |
 
 ## Open questions
 

@@ -1,8 +1,6 @@
-const POKEAPI_LIST_URL =
-  "https://pokeapi.co/api/v2/pokemon?limit=20&offset=0";
+const POKEAPI_LIST_URL = "https://pokeapi.co/api/v2/pokemon?limit=20&offset=0";
 
-const SPRITE_BASE =
-  "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon";
+const SPRITE_BASE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon";
 
 export type Pokemon = {
   id: number;

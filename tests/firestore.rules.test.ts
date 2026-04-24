@@ -74,9 +74,7 @@ describe("read — users/{userId}", () => {
 describe("create — users/{userId}", () => {
   it("owner can create their own document", async () => {
     const alice = testEnv.authenticatedContext("alice");
-    await assertSucceeds(
-      setDoc(doc(alice.firestore(), "users/alice"), userDoc),
-    );
+    await assertSucceeds(setDoc(doc(alice.firestore(), "users/alice"), userDoc));
   });
 
   it("authenticated user cannot create a document for another user", async () => {

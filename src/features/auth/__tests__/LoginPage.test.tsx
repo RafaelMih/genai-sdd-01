@@ -23,7 +23,7 @@ function renderPage() {
   render(
     <MemoryRouter>
       <LoginPage />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -35,9 +35,7 @@ describe("LoginPage", () => {
 
   // AC12
   it("already-authenticated user is redirected to /dashboard without rendering the form", () => {
-    vi.spyOn(useAuthStateModule, "useAuthState").mockReturnValue(
-      { uid: "abc123" } as User
-    );
+    vi.spyOn(useAuthStateModule, "useAuthState").mockReturnValue({ uid: "abc123" } as User);
     renderPage();
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard", { replace: true });
     expect(screen.queryByRole("heading", { name: /entrar/i })).toBeNull();
@@ -46,9 +44,7 @@ describe("LoginPage", () => {
   it("unauthenticated user sees the login form", () => {
     vi.spyOn(useAuthStateModule, "useAuthState").mockReturnValue(null);
     renderPage();
-    expect(
-      screen.getByRole("heading", { name: /entrar/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /entrar/i })).toBeInTheDocument();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -57,7 +53,7 @@ describe("LoginPage", () => {
     const { container } = render(
       <MemoryRouter>
         <LoginPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(container.firstChild).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();

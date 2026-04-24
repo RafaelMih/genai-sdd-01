@@ -33,9 +33,7 @@ function parseVersionFromName(name: string): VersionTuple | null {
   return null;
 }
 
-async function findLatestSpecPath(
-  featureSpecDir: string,
-): Promise<string | null> {
+async function findLatestSpecPath(featureSpecDir: string): Promise<string | null> {
   if (!(await exists(featureSpecDir))) return null;
 
   const entries = await readdir(featureSpecDir, { withFileTypes: true });
@@ -79,12 +77,8 @@ function extractSpecReference(traceabilityText: string): string | null {
 
 function isValidSpecReferenceFormat(ref: string): boolean {
   return (
-    /^specs[\\/]+features[\\/]+[^\\/]+[\\/]spec-v\d+\.\d+\.\d+\.md$/i.test(
-      ref,
-    ) ||
-    /^specs[\\/]+features[\\/]+[^\\/]+[\\/]v\d+\.\d+\.\d+[\\/]spec\.md$/i.test(
-      ref,
-    )
+    /^specs[\\/]+features[\\/]+[^\\/]+[\\/]spec-v\d+\.\d+\.\d+\.md$/i.test(ref) ||
+    /^specs[\\/]+features[\\/]+[^\\/]+[\\/]v\d+\.\d+\.\d+[\\/]spec\.md$/i.test(ref)
   );
 }
 
@@ -92,10 +86,7 @@ function getMappingLines(traceabilityText: string): string[] {
   return traceabilityText
     .split("\n")
     .map((line) => line.trim())
-    .filter(
-      (line) =>
-        /^-+\s*AC[-\s]?\d+/i.test(line) || /^\|\s*AC[-\s]?\d+\s*\|/i.test(line),
-    );
+    .filter((line) => /^-+\s*AC[-\s]?\d+/i.test(line) || /^\|\s*AC[-\s]?\d+\s*\|/i.test(line));
 }
 
 function hasTraceabilityTableHeader(traceabilityText: string): boolean {
@@ -111,9 +102,7 @@ async function main(): Promise<void> {
   }
 
   if (!(await exists(FEATURES_SPEC_ROOT))) {
-    console.log(
-      "No specs/features directory found. Skipping trace validation.",
-    );
+    console.log("No specs/features directory found. Skipping trace validation.");
     return;
   }
 
@@ -127,9 +116,7 @@ async function main(): Promise<void> {
     const specDir = path.join(FEATURES_SPEC_ROOT, featureName);
 
     if (!(await exists(specDir))) {
-      console.error(
-        `[spec:trace] Missing specs directory for feature "${featureName}"`,
-      );
+      console.error(`[spec:trace] Missing specs directory for feature "${featureName}"`);
       hasErrors = true;
       continue;
     }
@@ -147,9 +134,7 @@ async function main(): Promise<void> {
     const traceabilityText = await readFile(traceabilityPath, "utf8");
 
     if (!/^#\s+Traceability\b/m.test(traceabilityText)) {
-      console.error(
-        `[spec:trace] Invalid TRACEABILITY header for feature "${featureName}"`,
-      );
+      console.error(`[spec:trace] Invalid TRACEABILITY header for feature "${featureName}"`);
       hasErrors = true;
     }
 
@@ -162,9 +147,7 @@ async function main(): Promise<void> {
 
     const specReference = extractSpecReference(traceabilityText);
     if (!specReference) {
-      console.error(
-        `[spec:trace] Missing spec reference in "${traceabilityPath}"`,
-      );
+      console.error(`[spec:trace] Missing spec reference in "${traceabilityPath}"`);
       hasErrors = true;
     } else {
       if (!isValidSpecReferenceFormat(specReference)) {
@@ -193,9 +176,7 @@ async function main(): Promise<void> {
     const mappingLines = getMappingLines(traceabilityText);
 
     if (mappingLines.length === 0) {
-      console.error(
-        `[spec:trace] No AC mappings found in "${traceabilityPath}"`,
-      );
+      console.error(`[spec:trace] No AC mappings found in "${traceabilityPath}"`);
       hasErrors = true;
     }
 

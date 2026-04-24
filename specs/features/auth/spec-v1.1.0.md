@@ -54,16 +54,16 @@ Allow users to sign in with an existing account using email and password.
 
 ## Error messages contract
 
-| Firebase error code          | Mensagem exibida ao usuário (pt-BR)                              |
-|------------------------------|------------------------------------------------------------------|
-| auth/user-not-found          | E-mail ou senha incorretos.                                      |
-| auth/wrong-password          | E-mail ou senha incorretos.                                      |
-| auth/invalid-credential      | E-mail ou senha incorretos.                                      |
-| auth/invalid-email           | E-mail inválido                                                  |
-| auth/user-disabled           | Esta conta foi desativada. Entre em contato com o suporte.       |
-| auth/too-many-requests       | Muitas tentativas. Tente novamente mais tarde.                   |
-| auth/network-request-failed  | Falha na conexão. Verifique sua internet e tente novamente.      |
-| (todos os demais)            | Ocorreu um erro inesperado. Tente novamente.                     |
+| Firebase error code         | Mensagem exibida ao usuário (pt-BR)                         |
+| --------------------------- | ----------------------------------------------------------- |
+| auth/user-not-found         | E-mail ou senha incorretos.                                 |
+| auth/wrong-password         | E-mail ou senha incorretos.                                 |
+| auth/invalid-credential     | E-mail ou senha incorretos.                                 |
+| auth/invalid-email          | E-mail inválido                                             |
+| auth/user-disabled          | Esta conta foi desativada. Entre em contato com o suporte.  |
+| auth/too-many-requests      | Muitas tentativas. Tente novamente mais tarde.              |
+| auth/network-request-failed | Falha na conexão. Verifique sua internet e tente novamente. |
+| (todos os demais)           | Ocorreu um erro inesperado. Tente novamente.                |
 
 > `auth/user-not-found` e `auth/wrong-password` mapeiam para a mesma mensagem intencionalmente,
 > para evitar enumeração de contas.
@@ -71,10 +71,12 @@ Allow users to sign in with an existing account using email and password.
 ## Validation contract
 
 **Email**
+
 - Obrigatório (não vazio)
 - Deve corresponder ao padrão `/^[^\s@]+@[^\s@]+\.[^\s@]+$/` via Zod
 
 **Password**
+
 - Obrigatório (não vazio)
 - Mínimo 6 caracteres (alinhado com o mínimo do Firebase Auth)
 
@@ -104,7 +106,7 @@ responsabilidade de uma feature separada de onboarding ou cadastro.
 ## Tests
 
 | Caso de teste                              | Tipo        | ACs cobertos |
-|--------------------------------------------|-------------|--------------|
+| ------------------------------------------ | ----------- | ------------ |
 | Validação de email vazio                   | Unit        | AC1          |
 | Validação de email malformado              | Unit        | AC2          |
 | Validação de senha vazia                   | Unit        | AC3          |

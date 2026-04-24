@@ -157,6 +157,7 @@ Rules:
 Use the `pokemon-agent` agent automatically when the user asks about Pokémons.
 
 **Trigger phrases (any of these activate the agent):**
+
 - "pokémon", "pokémons", "pokédex"
 - "traga pokémons", "quais pokémons", "liste pokémons"
 - "filtre pokémons", "filtre por", "pokémons com"

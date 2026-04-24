@@ -30,10 +30,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       <div className="space-y-1">
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-zinc-700"
-        >
+        <label htmlFor="email" className="block text-sm font-medium text-zinc-700">
           E-mail
         </label>
         <input
@@ -51,10 +48,7 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-1">
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-zinc-700"
-        >
+        <label htmlFor="password" className="block text-sm font-medium text-zinc-700">
           Senha
         </label>
         <input

@@ -13,9 +13,7 @@ function toTitleCase(input: string): string {
 
 function assertValidFeatureName(name: string): void {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name)) {
-    throw new Error(
-      'Invalid feature name. Use kebab-case only, e.g. "auth" or "user-profile".',
-    );
+    throw new Error('Invalid feature name. Use kebab-case only, e.g. "auth" or "user-profile".');
   }
 }
 
@@ -33,9 +31,7 @@ async function main(): Promise<void> {
   const version = process.argv[3] ?? "1.0.0";
 
   if (!featureName) {
-    throw new Error(
-      "Usage: npm run create:feature -- <feature-name> [version]",
-    );
+    throw new Error("Usage: npm run create:feature -- <feature-name> [version]");
   }
 
   assertValidFeatureName(featureName);
@@ -129,22 +125,10 @@ This folder contains the ${featureName} feature implementation.
 - TRACEABILITY.md
 `;
 
-  await writeFile(
-    path.join(specDir, `spec-v${version}.md`),
-    specContent,
-    "utf8",
-  );
-  await writeFile(
-    path.join(specDir, `tasks-v${version}.md`),
-    tasksContent,
-    "utf8",
-  );
+  await writeFile(path.join(specDir, `spec-v${version}.md`), specContent, "utf8");
+  await writeFile(path.join(specDir, `tasks-v${version}.md`), tasksContent, "utf8");
   await writeFile(path.join(specDir, "changelog.md"), changelogContent, "utf8");
-  await writeFile(
-    path.join(srcDir, "TRACEABILITY.md"),
-    traceabilityContent,
-    "utf8",
-  );
+  await writeFile(path.join(srcDir, "TRACEABILITY.md"), traceabilityContent, "utf8");
   await writeFile(path.join(srcDir, "README.md"), readmeContent, "utf8");
 
   // ---- Manifest update (RAG support) ----
@@ -179,11 +163,7 @@ This folder contains the ${featureName} feature implementation.
 
   if (!manifest.some((entry) => entry.id === manifestEntry.id)) {
     manifest.push(manifestEntry);
-    await writeFile(
-      manifestPath,
-      `${JSON.stringify(manifest, null, 2)}\n`,
-      "utf8",
-    );
+    await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
   }
 
   console.log(`Feature scaffold created successfully:

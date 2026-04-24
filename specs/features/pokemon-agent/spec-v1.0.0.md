@@ -62,10 +62,10 @@ Definir o comportamento de um agente especializado em Pokémons que usa as ferra
 
 ### Ferramentas MCP disponíveis
 
-| Ferramenta | Parâmetros | Retorno |
-|---|---|---|
-| `list_pokemons` | `limit: number`, `offset: number` | `Array<{ name, url }>` |
-| `get_pokemon` | `name_or_id: string` | `{ id, name, sprite, types[], stats[] }` |
+| Ferramenta      | Parâmetros                        | Retorno                                  |
+| --------------- | --------------------------------- | ---------------------------------------- |
+| `list_pokemons` | `limit: number`, `offset: number` | `Array<{ name, url }>`                   |
+| `get_pokemon`   | `name_or_id: string`              | `{ id, name, sprite, types[], stats[] }` |
 
 ### Formato de exibição — listagem
 
@@ -91,16 +91,16 @@ Sprite: https://...
 
 ## Tests
 
-| Caso de teste | Tipo | ACs cobertos |
-|---|---|---|
-| Agente chama `list_pokemons(20, 0)` ao ser ativado sem filtro | Manual/Integration | AC1 |
-| Resultado exibe tabela com número `#001` e nome capitalizado | Manual/Integration | AC1 |
-| Ao dizer "traga mais", agente chama `list_pokemons(20, 20)` | Manual/Integration | AC2 |
-| Ao filtrar por 'char', retorna Charmander, Charmeleon, Charizard | Manual/Integration | AC3 |
-| Ao filtrar por texto inexistente, exibe mensagem de "Nenhum encontrado" | Manual/Integration | AC3 |
-| Ao pedir "detalhes do pikachu", agente chama `get_pokemon("pikachu")` | Manual/Integration | AC4 |
-| Resposta de detalhe exibe tipos e stats | Manual/Integration | AC4 |
-| Todas as respostas estão em pt-BR | Manual | AC5 |
+| Caso de teste                                                           | Tipo               | ACs cobertos |
+| ----------------------------------------------------------------------- | ------------------ | ------------ |
+| Agente chama `list_pokemons(20, 0)` ao ser ativado sem filtro           | Manual/Integration | AC1          |
+| Resultado exibe tabela com número `#001` e nome capitalizado            | Manual/Integration | AC1          |
+| Ao dizer "traga mais", agente chama `list_pokemons(20, 20)`             | Manual/Integration | AC2          |
+| Ao filtrar por 'char', retorna Charmander, Charmeleon, Charizard        | Manual/Integration | AC3          |
+| Ao filtrar por texto inexistente, exibe mensagem de "Nenhum encontrado" | Manual/Integration | AC3          |
+| Ao pedir "detalhes do pikachu", agente chama `get_pokemon("pikachu")`   | Manual/Integration | AC4          |
+| Resposta de detalhe exibe tipos e stats                                 | Manual/Integration | AC4          |
+| Todas as respostas estão em pt-BR                                       | Manual             | AC5          |
 
 ## Open questions
 

@@ -16,10 +16,7 @@ function parseVersion(file: string): [number, number, number] | null {
   return [Number(match[1]), Number(match[2]), Number(match[3])];
 }
 
-function compareVersions(
-  a: [number, number, number],
-  b: [number, number, number],
-): number {
+function compareVersions(a: [number, number, number], b: [number, number, number]): number {
   if (a[0] !== b[0]) return a[0] - b[0];
   if (a[1] !== b[1]) return a[1] - b[1];
   return a[2] - b[2];
@@ -66,9 +63,7 @@ function selectLatestByFeature(specs: SpecInfo[]): SpecInfo[] {
     }
   }
 
-  return [...latestByFeature.values()].sort((a, b) =>
-    a.feature.localeCompare(b.feature),
-  );
+  return [...latestByFeature.values()].sort((a, b) => a.feature.localeCompare(b.feature));
 }
 
 const latestSpecs = selectLatestByFeature(walk(root));
@@ -83,9 +78,7 @@ for (const spec of latestSpecs) {
 
   if (status !== "Approved") {
     failed = true;
-    console.error(
-      `[spec-status] ${spec.file} is NOT Approved (found: ${status ?? "missing"})`,
-    );
+    console.error(`[spec-status] ${spec.file} is NOT Approved (found: ${status ?? "missing"})`);
   }
 }
 

@@ -20,7 +20,7 @@ function renderButton() {
   render(
     <MemoryRouter>
       <LogoutButton />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -43,16 +43,18 @@ describe("LogoutButton", () => {
   it("button shows Saindo… and is disabled while signOut is in progress", async () => {
     let resolveSignOut!: (v: void) => void;
     vi.mocked(firebaseAuth.signOut).mockReturnValueOnce(
-      new Promise<void>((r) => { resolveSignOut = r; })
+      new Promise<void>((r) => {
+        resolveSignOut = r;
+      }),
     );
     renderButton();
     fireEvent.click(screen.getByRole("button", { name: /^sair$/i }));
 
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: /saindo/i })).toBeDisabled()
-    );
+    await waitFor(() => expect(screen.getByRole("button", { name: /saindo/i })).toBeDisabled());
 
-    await act(async () => { resolveSignOut(); });
+    await act(async () => {
+      resolveSignOut();
+    });
   });
 
   // AC3 + AC6 — successful logout navigates to /login with replace
@@ -60,9 +62,7 @@ describe("LogoutButton", () => {
     vi.mocked(firebaseAuth.signOut).mockResolvedValueOnce(undefined);
     renderButton();
     fireEvent.click(screen.getByRole("button", { name: /^sair$/i }));
-    await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith("/login", { replace: true })
-    );
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/login", { replace: true }));
   });
 
   // AC5 — signOut failure shows error below button and re-enables button
@@ -71,7 +71,7 @@ describe("LogoutButton", () => {
     renderButton();
     fireEvent.click(screen.getByRole("button", { name: /^sair$/i }));
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Erro ao sair da conta.")
+      expect(screen.getByRole("alert")).toHaveTextContent("Erro ao sair da conta."),
     );
     expect(screen.getByRole("button", { name: /^sair$/i })).not.toBeDisabled();
   });
@@ -81,17 +81,23 @@ describe("LogoutButton", () => {
     let resolveSecond!: (v: void) => void;
     vi.mocked(firebaseAuth.signOut)
       .mockRejectedValueOnce({ code: "auth/unknown" })
-      .mockReturnValueOnce(new Promise<void>((r) => { resolveSecond = r; }));
+      .mockReturnValueOnce(
+        new Promise<void>((r) => {
+          resolveSecond = r;
+        }),
+      );
     renderButton();
 
     fireEvent.click(screen.getByRole("button", { name: /^sair$/i }));
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Erro ao sair da conta.")
+      expect(screen.getByRole("alert")).toHaveTextContent("Erro ao sair da conta."),
     );
 
     fireEvent.click(screen.getByRole("button", { name: /^sair$/i }));
     await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
 
-    await act(async () => { resolveSecond(); });
+    await act(async () => {
+      resolveSecond();
+    });
   });
 });
