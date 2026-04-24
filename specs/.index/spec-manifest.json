@@ -76,5 +76,23 @@
     "feature": "user-logout",
     "version": "1.0.0",
     "dependsOn": []
+  },
+  {
+    "id": "feature-pokemon-list-v1.0.0",
+    "path": "specs/features/pokemon-list/spec-v1.0.0.md",
+    "type": "feature",
+    "feature": "pokemon-list",
+    "version": "1.0.0",
+    "status": "active",
+    "dependsOn": []
+  },
+  {
+    "id": "feature-pokemon-agent-v1.0.0",
+    "path": "specs/features/pokemon-agent/spec-v1.0.0.md",
+    "type": "feature",
+    "feature": "pokemon-agent",
+    "version": "1.0.0",
+    "status": "active",
+    "dependsOn": []
   }
 ]

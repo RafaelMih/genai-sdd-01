@@ -149,3 +149,19 @@ Rules:
 - Do not add unnecessary praise
 - Highlight inconsistencies, risks, and weak assumptions
 - Prefer clarity over verbosity
+
+---
+
+## Pokemon Agent
+
+Use the `pokemon-agent` agent automatically when the user asks about Pokémons.
+
+**Trigger phrases (any of these activate the agent):**
+- "pokémon", "pokémons", "pokédex"
+- "traga pokémons", "quais pokémons", "liste pokémons"
+- "filtre pokémons", "filtre por", "pokémons com"
+- "detalhes do", "como é o" (when referring to a Pokémon)
+- "traga mais" (in a Pokémon context)
+- any Pokémon name or Pokédex number in context
+
+**Skip:** questions not related to Pokémons or PokéAPI.
