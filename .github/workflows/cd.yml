@@ -1,12 +1,20 @@
-name: Spec Quality
+name: CD
 
 on:
   pull_request:
-    branches: [main]
+    types: [closed]
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
-  spec-quality:
+  deploy:
+    name: Deploy to Firebase Hosting
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
     env:
       VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
       VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
@@ -25,29 +33,18 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-
       - name: Install dependencies
         run: npm ci
+
+      - name: Build
+        run: npm run build
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Verify Firebase CLI
-        run: firebase --version
-
-      - name: Lint specs
-        run: npm run spec:lint
-
-      - name: Validate traceability
-        run: npm run spec:trace
-
-      - name: Run unit tests
-        run: npx vitest run --exclude 'tests/firestore.rules.test.ts'
-
-      - name: Firestore rules tests
-        run: npm run test:rules
+      - name: Deploy to Firebase Hosting
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > /tmp/sa.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
+          firebase deploy --only hosting --project genai-sdd-app
+          rm -f /tmp/sa.json

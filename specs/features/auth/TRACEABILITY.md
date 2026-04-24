@@ -1,6 +1,6 @@
 # Traceability - Auth
 
-Spec: specs/features/auth/spec-v1.1.2.md
+Spec: specs/features/auth/spec-v1.1.3.md
 
 ## Acceptance Criteria Mapping
 
@@ -18,7 +18,7 @@ Spec: specs/features/auth/spec-v1.1.2.md
 | AC8  | auth/network-request-failed → mensagem de conexão                                | `authErrors.ts` + `LoginForm.tsx`                 | `LoginForm.test.tsx` — "network error shows…"                             |
 | AC9  | Outros erros Firebase → "Ocorreu um erro inesperado."                            | `authErrors.ts` + `LoginForm.tsx`                 | `LoginForm.test.tsx` — "unknown Firebase error shows…"                    |
 |  —   | auth/invalid-email fallback (bypass client-side)                                 | `authErrors.ts` + `LoginForm.tsx`                 | `LoginForm.test.tsx` — "auth/invalid-email fallback shows…"               |
-| AC10 | Login bem-sucedido → navigate("/dashboard", { replace: true })                  | `LoginForm.tsx`                                   | `LoginForm.test.tsx` — "successful login navigates to /dashboard…"        |
+| AC10 | Login bem-sucedido → submit handler chama `navigate("/dashboard", { replace: true })` diretamente (não via `onAuthStateChanged`) | `LoginForm.tsx`  | `LoginForm.test.tsx` — "successful login navigates to /dashboard…"        |
 | AC11 | Botão desabilitado e label "Entrando…" durante submit (entry)                   | `LoginForm.tsx` (`isSubmitting`)                  | `LoginForm.test.tsx` — "submit button disabled and shows loading text…"   |
 | AC11 | Botão reabilitado com label "Entrar" após erro Firebase (exit)                  | `LoginForm.tsx`                                   | `LoginForm.test.tsx` — "submit button re-enabled with label Entrar…"      |
-| AC12 | Usuário autenticado em /login → navigate("/dashboard", { replace: true })       | `LoginPage.tsx` + `useAuthState.ts`               | `LoginPage.test.tsx` — "already-authenticated user is redirected…"        |
+| AC12 | Usuário autenticado em /login → navigate("/dashboard", { replace: true }) sem renderizar o formulário | `LoginPage.tsx` + `useAuthState.ts` | `LoginPage.test.tsx` — "already-authenticated user is redirected to /dashboard without rendering the form" |

@@ -55,19 +55,11 @@ const sectionAliases: Record<string, string[]> = {
   ],
   dependencies: ["dependencies", "depends on", "dependency", "dependências"],
   tests: ["tests", "test strategy", "test cases", "testing", "testes"],
-  "redirect contract": [
-    "redirect contract",
-    "redirects",
-    "navigation contract",
-    "contrato de redirect",
-    "contrato de redirecionamento",
-  ],
-  "auth contract": [
-    "auth contract",
-    "authentication contract",
-    "authorization contract",
-    "contrato de autenticação",
-    "contrato de auth",
+  "open questions": [
+    "open questions",
+    "open question",
+    "questões em aberto",
+    "questão em aberto",
   ],
 };
 
@@ -112,6 +104,12 @@ const subjectivePatternsWarn = [
   /login rápido/i,
   /erro claro/i,
 ];
+
+const observableBehaviorPattern =
+  /\b(must|shall|shows|show|redirects|redirect|returns|return|blocks|block|displays|display|creates|create|updates|update|deletes|delete|removes|remove|saves|save|calls|call|rejects|reject|allows|allow|prevents|prevent|disables|disable|enables|enable|navigates|navigate|opens|open|visible|deve|exibe|exibir|mostra|mostrar|redireciona|redirecionar|retorna|retornar|bloqueia|bloquear|cria|criar|atualiza|atualizar|deleta|deletar|remove|remover|salva|salvar|chama|chamar|rejeita|rejeitar|permite|permitir|previne|prevenir|desabilita|desabilitar|habilita|habilitar|navega|navegar|abre|abrir|visível)\b/i;
+
+const explicitContextPattern =
+  /\b(when|if|after|before|on|upon|given|then|while|during|quando|se|após|antes|ao|dado|então|enquanto|durante|caso)\b/i;
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -264,10 +262,6 @@ function pushIssue(
   issues.push({ severity, message });
 }
 
-function hasAny(text: string, patterns: RegExp[]): boolean {
-  return patterns.some((pattern) => pattern.test(text));
-}
-
 function lintTopLevel(text: string, issues: LintIssue[]): void {
   for (const rule of requiredTopLevelPatterns) {
     if (!rule.pattern.test(text)) {
@@ -395,8 +389,10 @@ function lintAcceptanceCriteria(
   }
 
   items.forEach((item, index) => {
+    const label = `AC-${index + 1}`;
+
     if (item.length < 12) {
-      pushIssue(issues, "WARN", `AC-${index + 1}: too short to be testable.`);
+      pushIssue(issues, "WARN", `${label}: too short to be testable.`);
     }
 
     if (
@@ -407,19 +403,23 @@ function lintAcceptanceCriteria(
       pushIssue(
         issues,
         "WARN",
-        `AC-${index + 1}: contains subjective wording: "${item}"`,
+        `${label}: contains subjective wording: "${item}"`,
       );
     }
 
-    if (
-      !/\b(must|shall|shows|show|redirects|redirect|returns|return|blocks|block|displays|display|creates|create|rejects|reject|allows|allow|prevents|prevent|disables|disable|deve|exibe|exibir|redireciona|redirecionar|retorna|retornar|bloqueia|bloquear|cria|criar|rejeita|rejeitar|permite|permitir|previne|prevenir|desabilita|desabilitar|navigates|navigate|visible|opens|open)\b/i.test(
-        item,
-      )
-    ) {
+    if (!observableBehaviorPattern.test(item)) {
       pushIssue(
         issues,
         "WARN",
-        `AC-${index + 1}: may not define observable behavior clearly: "${item}"`,
+        `${label}: may not define observable behavior clearly: "${item}"`,
+      );
+    }
+
+    if (!explicitContextPattern.test(item)) {
+      pushIssue(
+        issues,
+        "WARN",
+        `${label}: may not define an explicit trigger or context: "${item}"`,
       );
     }
 
@@ -427,7 +427,7 @@ function lintAcceptanceCriteria(
       pushIssue(
         issues,
         "BLOCKER",
-        `AC-${index + 1}: uses "should", which is not strict enough: "${item}"`,
+        `${label}: uses "should", which is not strict enough: "${item}"`,
       );
     }
   });
@@ -453,248 +453,27 @@ function lintTestsSection(
   }
 }
 
-function lintAuthSpec(
-  text: string,
+function lintOpenQuestions(
   sections: Record<string, string>,
   issues: LintIssue[],
 ): void {
-  const fullText = text;
-  const fullTextLower = text.toLowerCase();
-  const acText = sections["acceptance criteria"] ?? "";
-  const redirectText =
-    sections["redirect contract"] ??
-    `${sections["acceptance criteria"] ?? ""}\n${text}`;
+  const openQuestions = sections["open questions"];
 
-  const hasExplicitRedirectDestination = hasAny(redirectText, [
-    /redirect(path)?\s*:\s*["'`]?\/[a-z0-9/_-]+["'`]?/i,
-    /redirects?\s+to\s+["'`]?\/[a-z0-9/_-]+["'`]?/i,
-    /redireciona(?:r)?\s+para\s+["'`]?\/[a-z0-9/_-]+["'`]?/i,
-    /destino\s+do\s+redirect\s*:\s*["'`]?\/[a-z0-9/_-]+["'`]?/i,
+  if (!openQuestions) return;
 
-    /path after successful sign-?in\s*:\s*["'`]?\/[a-z0-9/_-]+["'`]?/i,
-    /path for already-authenticated users.*:\s*["'`]?\/[a-z0-9/_-]+["'`]?/i,
+  const normalized = openQuestions.trim().toLowerCase();
 
-    /\|\s*successful sign-?in\s*\|[^|\n]*\|\s*\/[a-z0-9/_-]+\s*\|/i,
-    /\|\s*user already authenticated\s*\|[^|\n]*\|\s*\/[a-z0-9/_-]+\s*\|/i,
-    /\|\s*login bem-?sucedido\s*\|[^|\n]*\|\s*\/[a-z0-9/_-]+\s*\|/i,
-    /\|\s*usuário já autenticado\s*\|[^|\n]*\|\s*\/[a-z0-9/_-]+\s*\|/i,
-  ]);
+  if (!normalized) return;
 
-  const hasPostLoginRedirectTrigger = hasAny(redirectText, [
-    /after login/i,
-    /on successful sign-?in/i,
-    /successful sign-?in/i,
-    /upon successful authentication/i,
-    /após login/i,
-    /após autenticação/i,
-    /em caso de login bem-sucedido/i,
-    /no sucesso do login/i,
+  const isExplicitlyNone = /^(none|nenhuma)\.?$/i.test(normalized);
 
-    /\|\s*successful sign-?in\s*\|/i,
-    /\|\s*login bem-?sucedido\s*\|/i,
-  ]);
+  if (isExplicitlyNone) return;
 
-  const hasAlreadyAuthenticatedBehavior = hasAny(fullText, [
-    /already-authenticated/i,
-    /already authenticated/i,
-    /if authenticated user visits \/login/i,
-    /signed-in user navigates to \/login/i,
-    /usuário autenticado.*\/login/i,
-    /se o usuário já estiver autenticado/i,
-    /ao acessar \/login já autenticado/i,
-
-    /\|\s*user already authenticated\s*\|/i,
-    /\|\s*usuário já autenticado\s*\|/i,
-  ]);
-
-  const hasRedirectNavigationMode = hasAny(redirectText, [
-    /\breplace:\s*true\b/i,
-    /\bpush\b/i,
-    /\breplace\b/i,
-    /navigation\s+mode\s*:\s*(push|replace)/i,
-    /tipo\s+de\s+navegação\s*:\s*(push|replace)/i,
-    /usar\s+replace/i,
-    /usar\s+push/i,
-
-    /\|\s*successful sign-?in\s*\|[^|\n]*\|[^|\n]*\|\s*(push|replace)\s*\|/i,
-    /\|\s*user already authenticated\s*\|[^|\n]*\|[^|\n]*\|\s*(push|replace)\s*\|/i,
-    /\|\s*login bem-?sucedido\s*\|[^|\n]*\|[^|\n]*\|\s*(push|replace)\s*\|/i,
-    /\|\s*usuário já autenticado\s*\|[^|\n]*\|[^|\n]*\|\s*(push|replace)\s*\|/i,
-  ]);
-
-  const hasProvisioning = hasAny(fullText, [
-    /sign-up/i,
-    /signup/i,
-    /pre-seeded/i,
-    /pre seeded/i,
-    /admin-created/i,
-    /admin created/i,
-    /account provisioning/i,
-    /account creation/i,
-    /accounts are created/i,
-    /cadastro/i,
-    /provisionamento/i,
-    /conta.*criada/i,
-    /contas são criadas/i,
-  ]);
-
-  const hasErrorContract = hasAny(fullText, [
-    /auth\/[a-z-]+/i,
-    /error code/i,
-    /error mapping/i,
-    /invalid email or password/i,
-    /network-request-failed/i,
-    /wrong-password/i,
-    /user-not-found/i,
-    /código de erro/i,
-    /mapeamento de erro/i,
-    /email ou senha inválidos/i,
-    /erro de autenticação/i,
-    /mensagem de erro/i,
-  ]);
-
-  const hasLoadingState = hasAny(fullText, [
-    /loading state/i,
-    /pending state/i,
-    /spinner/i,
-    /button disabled/i,
-    /disable submit during request/i,
-    /submitting/i,
-    /estado de carregamento/i,
-    /estado pendente/i,
-    /botão desabilitado/i,
-    /desabilita.*submit/i,
-    /enviando/i,
-    /loading indicator/i,
-    /indicador de carregamento/i,
-  ]);
-
-  const mentionsSecurityRules = hasAny(fullText, [
-    /security-rules/i,
-    /security rules/i,
-    /regras de segurança/i,
-  ]);
-
-  const explainsFirestoreInteraction = hasAny(fullText, [
-    /firestore/i,
-    /document creation/i,
-    /users\/\{uid\}/i,
-    /create.*user document/i,
-    /post-login write/i,
-    /post login write/i,
-    /criação de documento/i,
-    /documento do usuário/i,
-    /escrita pós-login/i,
-  ]);
-
-  const hasExplicitRedirectUndecided = hasAny(fullTextLower, [
-    /dashboard\s+path\s+is\s+undecided/i,
-    /\/dashboard\s+vs\s+\/app/i,
-    /redirect\s+path\s+undecided/i,
-    /destino\s+do\s+redirect\s+indefinido/i,
-    /redirect\s+entre\s+\/dashboard\s+e\s+\/app/i,
-    /redirecionamento\s+ainda\s+não\s+decidido/i,
-  ]);
-
-  const mentionsRedirect = hasAny(fullText, [
-    /\bredirect\b/i,
-    /\bredirecion/i,
-    /\/login/i,
-    /\/dashboard/i,
-  ]);
-
-  if (hasExplicitRedirectUndecided) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      "[auth] Contains unresolved redirect path decision.",
-    );
-  }
-
-  if (mentionsRedirect && !sections["redirect contract"]) {
-    pushIssue(
-      issues,
-      "WARN",
-      '[auth] Redirect behavior exists without a dedicated "## redirect contract" section.',
-    );
-  }
-
-  if (!hasExplicitRedirectDestination) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      "[auth] Missing explicit redirect destination path.",
-    );
-  }
-
-  if (!hasPostLoginRedirectTrigger) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      "[auth] Missing explicit post-login redirect trigger.",
-    );
-  }
-
-  if (!hasAlreadyAuthenticatedBehavior) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      "[auth] Missing behavior for already-authenticated users visiting /login.",
-    );
-  }
-
-  if (!hasRedirectNavigationMode) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      "[auth] Missing redirect navigation semantics (push vs replace).",
-    );
-  }
-
-  if (!hasProvisioning) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      "[auth] Missing account provisioning strategy.",
-    );
-  }
-
-  if (!hasErrorContract) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      "[auth] Missing auth error contract or error-code mapping.",
-    );
-  }
-
-  if (!hasLoadingState) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      "[auth] Missing loading/pending state contract.",
-    );
-  }
-
-  if (mentionsSecurityRules && !explainsFirestoreInteraction) {
-    pushIssue(
-      issues,
-      "WARN",
-      "[auth] Mentions security rules without explaining Auth ↔ Firestore interaction.",
-    );
-  }
-
-  if (
-    /friendly auth error|erro amigável/i.test(acText) &&
-    !/invalid email or password|mapped error|error code|email ou senha inválidos|código de erro|mapeamento de erro/i.test(
-      acText,
-    )
-  ) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      "[auth] Acceptance criteria mention friendly auth error without concrete message or mapping.",
-    );
-  }
+  pushIssue(
+    issues,
+    "WARN",
+    'Open questions section is not explicitly resolved as "None" or "Nenhuma".',
+  );
 }
 
 function lintFile(file: string): LintIssue[] {
@@ -708,17 +487,7 @@ function lintFile(file: string): LintIssue[] {
   lintVagueLanguage(text, issues);
   lintAcceptanceCriteria(sections["acceptance criteria"], issues);
   lintTestsSection(sections["tests"], issues);
-
-  const isAuthLike =
-    /[\\/]auth[\\/]/i.test(file) ||
-    /\bfirebase auth\b/i.test(text) ||
-    /\blogin\b/i.test(text) ||
-    /\bauthentication\b/i.test(text) ||
-    /\bautenticação\b/i.test(text);
-
-  if (isAuthLike) {
-    lintAuthSpec(text, sections, issues);
-  }
+  lintOpenQuestions(sections, issues);
 
   return issues;
 }

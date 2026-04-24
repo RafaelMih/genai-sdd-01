@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "typecheck": "tsc --project tsconfig.app.json --noEmit",
+    "lint": "eslint src --max-warnings 0",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "create:feature": "tsx scripts/create-feature.ts",
@@ -14,17 +16,21 @@
     "spec:check": "npm run spec:lint && npm run spec:status",
     "precommit:spec": "tsx scripts/precommit-spec.ts",
     "mcp:spec-rag": "tsx mcp/spec-rag-server.ts",
+    "rag:server": "tsx src/rag/spec-rag-server.ts",
+    "ai:context": "tsx scripts/ai-context.ts",
+    "mcp:rag": "tsx mcp/spec-rag-mcp.ts",
     "test": "vitest --run --exclude 'tests/firestore.rules.test.ts'",
     "test:rules": "firebase emulators:exec --only firestore \"vitest run tests/firestore.rules.test.ts\""
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "firebase": "^12.12.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.0",
     "react-router-dom": "^7.0.0",
-    "zod": "^3.24.0"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.0",

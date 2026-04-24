@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { access, mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 
@@ -30,9 +30,12 @@ async function exists(target: string): Promise<boolean> {
 
 async function main(): Promise<void> {
   const featureName = process.argv[2];
+  const version = process.argv[3] ?? "1.0.0";
 
   if (!featureName) {
-    throw new Error("Usage: npm run create:feature -- <feature-name>");
+    throw new Error(
+      "Usage: npm run create:feature -- <feature-name> [version]",
+    );
   }
 
   assertValidFeatureName(featureName);
@@ -40,7 +43,6 @@ async function main(): Promise<void> {
   const featureTitle = toTitleCase(featureName);
   const specDir = path.join("specs", "features", featureName);
   const srcDir = path.join("src", "features", featureName);
-  const version = "1.0.0";
 
   if (await exists(specDir)) {
     throw new Error(`Feature already exists: ${specDir}`);
@@ -73,12 +75,11 @@ Describe the feature outcome in one sentence.
 3. System completes the action
 
 ## Acceptance criteria
-- AC-01: Replace this with a testable behavior
-- AC-02: Replace this with a testable behavior
+- AC1: Replace this with a testable behavior
+- AC2: Replace this with a testable behavior
 
 ## Dependencies
-- specs/technical/<relevant-contract>.md
-- specs/decisions/<relevant-adr>.md
+- None
 
 ## Tests
 - unit:
@@ -86,7 +87,7 @@ Describe the feature outcome in one sentence.
 - e2e:
 
 ## Open questions
-- none
+- None
 `;
 
   const tasksContent = `# Tasks - ${featureTitle} v${version}
@@ -109,8 +110,11 @@ Describe the feature outcome in one sentence.
 Spec: specs/features/${featureName}/spec-v${version}.md
 
 ## Acceptance Criteria Mapping
-- AC-01 -> <file.tsx>
-- AC-02 -> <file.ts>
+
+| AC | Criteria | Module(s) | Test(s) |
+|----|----------|-----------|---------|
+| AC1 | TBD | TBD | TBD |
+| AC2 | TBD | TBD | TBD |
 `;
 
   const readmeContent = `# ${featureTitle}
@@ -125,15 +129,67 @@ This folder contains the ${featureName} feature implementation.
 - TRACEABILITY.md
 `;
 
-  await writeFile(path.join(specDir, `spec-v${version}.md`), specContent, "utf8");
-  await writeFile(path.join(specDir, `tasks-v${version}.md`), tasksContent, "utf8");
+  await writeFile(
+    path.join(specDir, `spec-v${version}.md`),
+    specContent,
+    "utf8",
+  );
+  await writeFile(
+    path.join(specDir, `tasks-v${version}.md`),
+    tasksContent,
+    "utf8",
+  );
   await writeFile(path.join(specDir, "changelog.md"), changelogContent, "utf8");
-  await writeFile(path.join(srcDir, "TRACEABILITY.md"), traceabilityContent, "utf8");
+  await writeFile(
+    path.join(srcDir, "TRACEABILITY.md"),
+    traceabilityContent,
+    "utf8",
+  );
   await writeFile(path.join(srcDir, "README.md"), readmeContent, "utf8");
+
+  // ---- Manifest update (RAG support) ----
+  const manifestDir = path.join("specs", ".index");
+  const manifestPath = path.join(manifestDir, "spec-manifest.json");
+
+  await mkdir(manifestDir, { recursive: true });
+
+  type ManifestEntry = {
+    id: string;
+    path: string;
+    type: "feature";
+    feature: string;
+    version: string;
+    dependsOn: string[];
+  };
+
+  const manifestExists = await exists(manifestPath);
+
+  const manifest: ManifestEntry[] = manifestExists
+    ? JSON.parse(await readFile(manifestPath, "utf8"))
+    : [];
+
+  const manifestEntry: ManifestEntry = {
+    id: `feature-${featureName}-v${version}`,
+    path: `specs/features/${featureName}/spec-v${version}.md`,
+    type: "feature",
+    feature: featureName,
+    version,
+    dependsOn: [],
+  };
+
+  if (!manifest.some((entry) => entry.id === manifestEntry.id)) {
+    manifest.push(manifestEntry);
+    await writeFile(
+      manifestPath,
+      `${JSON.stringify(manifest, null, 2)}\n`,
+      "utf8",
+    );
+  }
 
   console.log(`Feature scaffold created successfully:
 - ${specDir}
-- ${srcDir}`);
+- ${srcDir}
+- manifest updated`);
 }
 
 main().catch((error: unknown) => {

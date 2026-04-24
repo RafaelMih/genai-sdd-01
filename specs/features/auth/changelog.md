@@ -1,5 +1,15 @@
 # Changelog - Auth
 
+## v1.1.3
+
+- User flow step 2: adicionada nota explícita de que o observer `onAuthStateChanged` trata apenas o caso de page-mount (AC12), não o redirect pós-login
+- User flow step 8: reescrito para deixar explícito que o redirect pós-login é uma chamada direta de `navigate` no submit handler de `LoginForm`, independente do `onAuthStateChanged`
+- AC10: reescrito para especificar que a chamada de `navigate` é direta no submit handler, não via `onAuthStateChanged`
+- Redirect contract: adicionada coluna "Mechanism" especificando o mecanismo exato de cada redirect (AC10 = direct `navigate` em `LoginForm`; AC12 = observer em `LoginPage`)
+- Redirect contract: adicionado parágrafo explicitando que os dois mecanismos são independentes
+- Auth state contract: adicionada nota explicando que o estado `User` do observer só é atingido em page-mount; o submit handler redireciona antes do observer disparar pós-login
+- Tabela de testes: AC10 renomeado para refletir "submit handler chama navigate diretamente"
+
 ## v1.1.2
 
 - Redirect contract: redirect pós-login bem-sucedido agora especifica `replace: true`
