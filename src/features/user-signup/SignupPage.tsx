@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LoginForm } from "./LoginForm";
-import { useAuthState } from "./useAuthState";
+import { useAuthState } from "../auth/useAuthState";
+import { SignupForm } from "./SignupForm";
 
-export function LoginPage() {
+export function SignupPage() {
   const user = useAuthState();
   const navigate = useNavigate();
 
@@ -13,10 +13,10 @@ export function LoginPage() {
     }
   }, [user, navigate]);
 
-  // Resolving auth state — render nothing to avoid flash of login form
+  // Resolving auth state — render nothing to avoid flash of signup form
   if (user === undefined) return null;
 
-  // Authenticated — navigation is handled in useEffect; do not render the form (AC12)
+  // Authenticated — navigation is handled in useEffect; do not render the form (AC18)
   if (user) return null;
 
   return (
@@ -25,9 +25,9 @@ export function LoginPage() {
         <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
           Auth
         </p>
-        <h1 className="mt-3 text-2xl font-bold text-zinc-900">Entrar</h1>
+        <h1 className="mt-3 text-2xl font-bold text-zinc-900">Criar conta</h1>
         <div className="mt-6">
-          <LoginForm />
+          <SignupForm />
         </div>
       </div>
     </main>

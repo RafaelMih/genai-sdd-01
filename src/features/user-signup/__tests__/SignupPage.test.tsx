@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { User } from "firebase/auth";
-import { LoginPage } from "../LoginPage";
-import * as useAuthStateModule from "../useAuthState";
+import { SignupPage } from "../SignupPage";
+import * as useAuthStateModule from "../../auth/useAuthState";
 
 const mockNavigate = vi.fn();
 
@@ -12,43 +12,45 @@ vi.mock("react-router-dom", async () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-// Mock Firebase so LoginForm doesn't try to initialize a real app
 vi.mock("../../../firebase/auth", () => ({ auth: {} }));
+vi.mock("../../../firebase/firestore", () => ({ db: {} }));
 vi.mock("firebase/auth", () => ({
-  signInWithEmailAndPassword: vi.fn(),
+  createUserWithEmailAndPassword: vi.fn(),
+  signOut: vi.fn(),
   onAuthStateChanged: vi.fn(),
+}));
+vi.mock("firebase/firestore", () => ({
+  doc: vi.fn(),
+  setDoc: vi.fn(),
+  serverTimestamp: vi.fn(),
 }));
 
 function renderPage() {
   render(
     <MemoryRouter>
-      <LoginPage />
+      <SignupPage />
     </MemoryRouter>
   );
 }
 
-describe("LoginPage", () => {
+describe("SignupPage", () => {
   beforeEach(() => {
     mockNavigate.mockReset();
     vi.restoreAllMocks();
   });
 
-  // AC12
+  // AC18
   it("already-authenticated user is redirected to /dashboard without rendering the form", () => {
-    vi.spyOn(useAuthStateModule, "useAuthState").mockReturnValue(
-      { uid: "abc123" } as User
-    );
+    vi.spyOn(useAuthStateModule, "useAuthState").mockReturnValue({ uid: "abc123" } as User);
     renderPage();
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard", { replace: true });
-    expect(screen.queryByRole("heading", { name: /entrar/i })).toBeNull();
+    expect(screen.queryByRole("heading", { name: /criar conta/i })).toBeNull();
   });
 
-  it("unauthenticated user sees the login form", () => {
+  it("unauthenticated user sees the signup form", () => {
     vi.spyOn(useAuthStateModule, "useAuthState").mockReturnValue(null);
     renderPage();
-    expect(
-      screen.getByRole("heading", { name: /entrar/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /criar conta/i })).toBeInTheDocument();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -56,7 +58,7 @@ describe("LoginPage", () => {
     vi.spyOn(useAuthStateModule, "useAuthState").mockReturnValue(undefined);
     const { container } = render(
       <MemoryRouter>
-        <LoginPage />
+        <SignupPage />
       </MemoryRouter>
     );
     expect(container.firstChild).toBeNull();

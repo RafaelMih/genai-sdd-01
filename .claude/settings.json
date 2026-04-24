@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "spec-rag": {
+      "command": "npx",
+      "args": ["tsx", "mcp/spec-rag-mcp.ts"]
+    }
+  }
+}

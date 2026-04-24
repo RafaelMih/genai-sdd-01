@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
+import { createServer } from "node:http";
 import path from "node:path";
 import process from "node:process";
 

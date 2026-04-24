@@ -82,7 +82,7 @@ export function LoginForm() {
         disabled={isSubmitting}
         className="w-full rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
       >
-        {isSubmitting ? "Entrando..." : "Entrar"}
+        {isSubmitting ? "Entrando…" : "Entrar"}
       </button>
     </form>
   );
