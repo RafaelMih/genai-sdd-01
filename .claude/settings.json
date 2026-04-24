@@ -3,6 +3,10 @@
     "spec-rag": {
       "command": "npx",
       "args": ["tsx", "mcp/spec-rag-mcp.ts"]
+    },
+    "pokemon": {
+      "command": "npx",
+      "args": ["tsx", "mcp/pokemon-mcp.ts"]
     }
   }
 }
