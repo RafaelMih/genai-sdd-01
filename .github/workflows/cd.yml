@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   deploy:
@@ -36,15 +35,35 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate Firebase env
+        run: |
+          test -n "$VITE_FIREBASE_API_KEY"
+          test -n "$VITE_FIREBASE_AUTH_DOMAIN"
+          test -n "$VITE_FIREBASE_PROJECT_ID"
+          test -n "$VITE_FIREBASE_STORAGE_BUCKET"
+          test -n "$VITE_FIREBASE_MESSAGING_SENDER_ID"
+          test -n "$VITE_FIREBASE_APP_ID"
+
       - name: Build
         run: npm run build
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Deploy to Firebase Hosting
+      - name: Create Firebase service account file
         run: |
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > /tmp/sa.json
-          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
-          firebase deploy --only hosting --project genai-sdd-app
-          rm -f /tmp/sa.json
+          cat > /tmp/sa.json <<'EOF' ${{ secrets.FIREBASE_SERVICE_ACCOUNT }} EOF
+
+          test -s /tmp/sa.json
+          jq -e '.type == "service_account"' /tmp/sa.json
+          jq -e '.project_id == "genai-sdd-app"' /tmp/sa.json
+          jq -e '.client_email' /tmp/sa.json
+
+      - name: Deploy to Firebase Hosting
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/sa.json
+        run: firebase deploy --only hosting --project genai-sdd-app
+
+      - name: Cleanup Firebase credentials
+        if: always()
+        run: rm -f /tmp/sa.json
