@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { access, mkdir, readFile, stat, writeFile, type Stats } from "node:fs/promises";
+import { Stats } from "node:fs";
+import { access, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export type ContextCacheMode = "summary" | "full" | "chunked";

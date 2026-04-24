@@ -1,305 +1,351 @@
 import fs from "node:fs";
 import path from "node:path";
 const root = path.resolve("specs/features");
+const lintAllVersions = process.env.SPEC_LINT_ALL === "1";
 const requiredTopLevelPatterns = [
-  {
-    name: 'H1 "# Feature Spec:"',
-    pattern: /^#\s+Feature Spec:/m,
-    severity: "BLOCKER",
-  },
-  {
-    name: "Version line",
-    pattern: /^Version:\s+v?\d+\.\d+\.\d+/m,
-    severity: "BLOCKER",
-  },
-  {
-    name: "Status line",
-    pattern: /^Status:\s+(Draft|Approved|Blocked|Deprecated)$/m,
-    severity: "BLOCKER",
-  },
+    {
+        name: 'H1 "# Feature Spec:"',
+        pattern: /^#\s+Feature Spec:/m,
+        severity: "BLOCKER",
+    },
+    {
+        name: "Version line",
+        pattern: /^Version:\s+v?\d+\.\d+\.\d+/m,
+        severity: "BLOCKER",
+    },
+    {
+        name: "Status line",
+        pattern: /^Status:\s+(Draft|Approved|Blocked|Deprecated)$/m,
+        severity: "BLOCKER",
+    },
 ];
 const sectionAliases = {
-  objective: ["objective", "goal", "goals"],
-  scope: ["scope", "in scope", "in-scope"],
-  "out of scope": ["out of scope", "out-of-scope", "excluded", "non-goals", "non goals"],
-  "acceptance criteria": ["acceptance criteria", "acceptance criterion", "acceptance", "criteria"],
-  dependencies: ["dependencies", "depends on", "dependency"],
-  tests: ["tests", "test strategy", "test cases", "testing"],
+    objective: ["objective", "goal", "goals", "objetivo"],
+    scope: ["scope", "in scope", "in-scope", "escopo"],
+    "out of scope": [
+        "out of scope",
+        "out-of-scope",
+        "excluded",
+        "non-goals",
+        "non goals",
+        "fora do escopo",
+    ],
+    "acceptance criteria": [
+        "acceptance criteria",
+        "acceptance criterion",
+        "acceptance",
+        "criteria",
+        "critérios de aceitação",
+    ],
+    dependencies: ["dependencies", "depends on", "dependency", "dependências"],
+    tests: ["tests", "test strategy", "test cases", "testing", "testes"],
+    "open questions": ["open questions", "open question", "questões em aberto", "questão em aberto"],
 };
 const vagueTermsWarn = [
-  "rápido",
-  "intuitivo",
-  "bonito",
-  "moderno",
-  "amigável",
-  "eficiente",
-  "otimizado",
-  "friendly",
-  "simple",
-  "easy",
-  "seamless",
-  "robust",
-  "user-friendly",
+    "rápido",
+    "intuitivo",
+    "bonito",
+    "moderno",
+    "amigável",
+    "eficiente",
+    "otimizado",
+    "simple",
+    "easy",
+    "seamless",
+    "robust",
+    "user-friendly",
 ];
+const unresolvedMarkersBlocker = ["tbd", "to decide", "undecided", "decide later", "placeholder"];
 const unresolvedMarkersWarn = [
-  "todo",
-  "tbd",
-  "to decide",
-  "undecided",
-  "open question",
-  "open questions",
-  "decide later",
-  "placeholder",
+    "todo",
+    "open question",
+    "open questions",
+    "questão em aberto",
+    "questões em aberto",
 ];
 const subjectivePatternsWarn = [
-  /friendly auth error/i,
-  /good user experience/i,
-  /better performance/i,
-  /fast login/i,
-  /clear error/i,
+    /good user experience/i,
+    /better performance/i,
+    /fast login/i,
+    /clear error/i,
+    /boa experiência/i,
+    /melhor performance/i,
+    /login rápido/i,
+    /erro claro/i,
 ];
+const observableBehaviorPattern = /\b(must|shall|shows|show|redirects|redirect|returns|return|blocks|block|displays|display|creates|create|updates|update|deletes|delete|removes|remove|saves|save|calls|call|rejects|reject|allows|allow|prevents|prevent|disables|disable|enables|enable|navigates|navigate|opens|open|visible|deve|exibe|exibir|mostra|mostrar|redireciona|redirecionar|retorna|retornar|bloqueia|bloquear|cria|criar|atualiza|atualizar|deleta|deletar|remove|remover|salva|salvar|chama|chamar|rejeita|rejeitar|permite|permitir|previne|prevenir|desabilita|desabilitar|habilita|habilitar|navega|navegar|abre|abrir|visível)\b/i;
+const explicitContextPattern = /\b(when|if|after|before|on|upon|given|then|while|during|quando|se|após|antes|ao|dado|então|enquanto|durante|caso)\b/i;
 function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 function normalizeWhitespace(value) {
-  return value.replace(/\r\n/g, "\n");
+    return value.replace(/\r\n/g, "\n");
 }
 function normalizeSectionName(name) {
-  return name.trim().toLowerCase().replace(/\s+/g, " ");
+    return name.trim().toLowerCase().replace(/\s+/g, " ");
 }
-function walk(dir) {
-  const out = [];
-  if (!fs.existsSync(dir)) return out;
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      out.push(...walk(full));
-    } else if (/spec-v\d+\.\d+\.\d+\.md$/i.test(entry.name)) {
-      out.push(full);
+function parseVersionFromPath(file) {
+    const normalized = file.replace(/\\/g, "/");
+    const nested = normalized.match(/\/v(\d+)\.(\d+)\.(\d+)\/spec\.md$/i);
+    if (nested) {
+        return [Number(nested[1]), Number(nested[2]), Number(nested[3])];
     }
-  }
-  return out;
+    const flat = normalized.match(/spec-v(\d+)\.(\d+)\.(\d+)\.md$/i);
+    if (flat) {
+        return [Number(flat[1]), Number(flat[2]), Number(flat[3])];
+    }
+    return null;
+}
+function extractFeatureFromPath(file) {
+    const normalized = file.replace(/\\/g, "/");
+    const nested = normalized.match(/specs\/features\/([^/]+)\/v\d+\.\d+\.\d+\/spec\.md$/i);
+    if (nested) {
+        return nested[1];
+    }
+    const flat = normalized.match(/specs\/features\/([^/]+)\/spec-v\d+\.\d+\.\d+\.md$/i);
+    if (flat) {
+        return flat[1];
+    }
+    return null;
+}
+function compareVersions(a, b) {
+    if (a[0] !== b[0])
+        return a[0] - b[0];
+    if (a[1] !== b[1])
+        return a[1] - b[1];
+    return a[2] - b[2];
+}
+function collectSpecFiles(dir) {
+    const out = [];
+    if (!fs.existsSync(dir))
+        return out;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        const normalizedFull = full.replace(/\\/g, "/");
+        if (entry.isDirectory()) {
+            out.push(...collectSpecFiles(full));
+            continue;
+        }
+        const isVersionedSpecFile = /spec-v\d+\.\d+\.\d+\.md$/i.test(entry.name);
+        const isNestedVersionSpec = /\/v\d+\.\d+\.\d+\/spec\.md$/i.test(normalizedFull);
+        if (!isVersionedSpecFile && !isNestedVersionSpec)
+            continue;
+        const feature = extractFeatureFromPath(full);
+        const version = parseVersionFromPath(full);
+        if (!feature || !version)
+            continue;
+        out.push({ file: full, feature, version });
+    }
+    return out;
+}
+function selectFilesToLint(files) {
+    if (lintAllVersions) {
+        return files.map((item) => item.file).sort();
+    }
+    const latestByFeature = new Map();
+    for (const item of files) {
+        const existing = latestByFeature.get(item.feature);
+        if (!existing || compareVersions(item.version, existing.version) > 0) {
+            latestByFeature.set(item.feature, item);
+        }
+    }
+    return [...latestByFeature.values()]
+        .sort((a, b) => a.feature.localeCompare(b.feature))
+        .map((item) => item.file);
 }
 function canonicalizeSectionName(raw) {
-  const normalized = normalizeSectionName(raw);
-  for (const [canonical, aliases] of Object.entries(sectionAliases)) {
-    if (aliases.includes(normalized)) {
-      return canonical;
+    const normalized = normalizeSectionName(raw);
+    for (const [canonical, aliases] of Object.entries(sectionAliases)) {
+        if (aliases.includes(normalized)) {
+            return canonical;
+        }
     }
-  }
-  return normalized;
+    return normalized;
 }
 function getSections(text) {
-  const sections = {};
-  const lines = normalizeWhitespace(text).split("\n");
-  let current = "__root__";
-  sections[current] = "";
-  for (const line of lines) {
-    const h2 = line.match(/^##\s+(.+?)\s*$/);
-    if (h2) {
-      current = canonicalizeSectionName(h2[1]);
-      sections[current] ??= "";
-      continue;
+    const sections = {};
+    const lines = normalizeWhitespace(text).split("\n");
+    let current = "__root__";
+    sections[current] = "";
+    for (const line of lines) {
+        const h2 = line.match(/^##\s+(.+?)\s*$/);
+        if (h2) {
+            current = canonicalizeSectionName(h2[1]);
+            sections[current] ??= "";
+            continue;
+        }
+        sections[current] ??= "";
+        sections[current] += `${line}\n`;
     }
-    sections[current] ??= "";
-    sections[current] += `${line}\n`;
-  }
-  return sections;
+    return sections;
 }
 function pushIssue(issues, severity, message) {
-  issues.push({ severity, message });
+    issues.push({ severity, message });
 }
 function lintTopLevel(text, issues) {
-  for (const rule of requiredTopLevelPatterns) {
-    if (!rule.pattern.test(text)) {
-      pushIssue(issues, rule.severity, `Missing required pattern: ${rule.name}`);
+    for (const rule of requiredTopLevelPatterns) {
+        if (!rule.pattern.test(text)) {
+            pushIssue(issues, rule.severity, `Missing required pattern: ${rule.name}`);
+        }
     }
-  }
 }
 function lintRequiredSections(sections, issues) {
-  for (const canonicalName of Object.keys(sectionAliases)) {
-    if (!sections[canonicalName] || !sections[canonicalName].trim()) {
-      pushIssue(issues, "BLOCKER", `Missing required section: "## ${canonicalName}"`);
+    const alwaysRequired = [
+        "objective",
+        "scope",
+        "out of scope",
+        "acceptance criteria",
+        "dependencies",
+        "tests",
+    ];
+    for (const canonicalName of alwaysRequired) {
+        if (!sections[canonicalName] || !sections[canonicalName].trim()) {
+            pushIssue(issues, "BLOCKER", `Missing required section: "## ${canonicalName}"`);
+        }
     }
-  }
 }
 function lintVagueLanguage(text, issues) {
-  for (const term of vagueTermsWarn) {
-    const re = new RegExp(`\\b${escapeRegExp(term)}\\b`, "i");
-    if (re.test(text)) {
-      pushIssue(issues, "WARN", `Vague term found: "${term}"`);
+    for (const term of vagueTermsWarn) {
+        const re = new RegExp(`\\b${escapeRegExp(term)}\\b`, "i");
+        if (re.test(text)) {
+            pushIssue(issues, "WARN", `Vague term found: "${term}"`);
+        }
     }
-  }
-  for (const marker of unresolvedMarkersWarn) {
-    const re = new RegExp(`\\b${escapeRegExp(marker)}\\b`, "i");
-    if (re.test(text)) {
-      pushIssue(issues, "WARN", `Unresolved marker found: "${marker}"`);
+    const hasResolvedOpenQuestions = /##\s+open questions\s*\n+\s*(none|nenhuma)\.?\s*$/im.test(text) ||
+        /##\s+questões em aberto\s*\n+\s*(none|nenhuma)\.?\s*$/im.test(text);
+    for (const marker of unresolvedMarkersBlocker) {
+        const re = new RegExp(`\\b${escapeRegExp(marker)}\\b`, "i");
+        if (re.test(text)) {
+            pushIssue(issues, "BLOCKER", `Unresolved marker found: "${marker}"`);
+        }
     }
-  }
-  for (const pattern of subjectivePatternsWarn) {
-    if (pattern.test(text)) {
-      pushIssue(issues, "WARN", `Subjective or unverifiable wording found: ${pattern}`);
+    if (!hasResolvedOpenQuestions) {
+        for (const marker of unresolvedMarkersWarn) {
+            const re = new RegExp(`\\b${escapeRegExp(marker)}\\b`, "i");
+            if (re.test(text)) {
+                pushIssue(issues, "WARN", `Potential unresolved marker found: "${marker}"`);
+            }
+        }
     }
-  }
+    for (const pattern of subjectivePatternsWarn) {
+        if (pattern.test(text)) {
+            pushIssue(issues, "WARN", `Subjective or unverifiable wording found: ${pattern}`);
+        }
+    }
+}
+function extractAcceptanceCriteriaItems(acText) {
+    const lines = acText.split("\n");
+    const items = [];
+    let current = "";
+    for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line)
+            continue;
+        if (/^(- |\* )?AC[-\s]?\d+[:.)]/i.test(line)) {
+            if (current)
+                items.push(current.trim());
+            current = line.replace(/^(- |\* )/, "");
+            continue;
+        }
+        if (current) {
+            current += ` ${line}`;
+        }
+    }
+    if (current) {
+        items.push(current.trim());
+    }
+    return items;
 }
 function lintAcceptanceCriteria(acText, issues) {
-  if (!acText || !acText.trim()) {
-    pushIssue(issues, "BLOCKER", "Acceptance criteria block not found.");
-    return;
-  }
-  const lines = acText
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => /^(- |\* )|^AC-\d+:/i.test(line));
-  if (lines.length === 0) {
-    pushIssue(issues, "BLOCKER", "Acceptance criteria block has no list items.");
-    return;
-  }
-  lines.forEach((line, index) => {
-    const item = line.replace(/^(- |\* )/, "").trim();
-    if (item.length < 12) {
-      pushIssue(issues, "WARN", `AC-${index + 1}: too short to be testable.`);
+    if (!acText || !acText.trim()) {
+        pushIssue(issues, "BLOCKER", "Acceptance criteria block not found.");
+        return;
     }
-    if (/\b(friendly|clear|simple|easy|intuitive|fast|quick|good)\b/i.test(item)) {
-      pushIssue(issues, "WARN", `AC-${index + 1}: contains subjective wording: "${item}"`);
+    const items = extractAcceptanceCriteriaItems(acText);
+    if (items.length === 0) {
+        pushIssue(issues, "BLOCKER", "Acceptance criteria block has no list items.");
+        return;
     }
-    if (
-      !/\b(must|shall|should|shows|redirects|returns|blocks|displays|creates|rejects|allows|prevents|disables)\b/i.test(
-        item,
-      )
-    ) {
-      pushIssue(
-        issues,
-        "WARN",
-        `AC-${index + 1}: may not define observable behavior clearly: "${item}"`,
-      );
-    }
-    if (!/[.?!]$/.test(item)) {
-      pushIssue(issues, "WARN", `AC-${index + 1}: should end with punctuation for consistency.`);
-    }
-  });
+    items.forEach((item, index) => {
+        const label = `AC-${index + 1}`;
+        if (item.length < 12) {
+            pushIssue(issues, "WARN", `${label}: too short to be testable.`);
+        }
+        if (/\b(friendly|clear|simple|easy|intuitive|fast|quick|good|amigável|claro|simples|fácil|intuitivo|rápido|bom)\b/i.test(item)) {
+            pushIssue(issues, "WARN", `${label}: contains subjective wording: "${item}"`);
+        }
+        if (!observableBehaviorPattern.test(item)) {
+            pushIssue(issues, "WARN", `${label}: may not define observable behavior clearly: "${item}"`);
+        }
+        if (!explicitContextPattern.test(item)) {
+            pushIssue(issues, "WARN", `${label}: may not define an explicit trigger or context: "${item}"`);
+        }
+        if (/\bshould\b/i.test(item)) {
+            pushIssue(issues, "BLOCKER", `${label}: uses "should", which is not strict enough: "${item}"`);
+        }
+    });
 }
 function lintTestsSection(testsText, issues) {
-  if (!testsText || !testsText.trim()) {
-    pushIssue(issues, "BLOCKER", "Tests section not found.");
-    return;
-  }
-  const meaningfulContent = testsText
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .filter((line) => !line.startsWith(">"));
-  if (meaningfulContent.length === 0) {
-    pushIssue(issues, "BLOCKER", "Tests section is empty.");
-  }
+    if (!testsText || !testsText.trim()) {
+        pushIssue(issues, "BLOCKER", "Tests section not found.");
+        return;
+    }
+    const meaningfulContent = testsText
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .filter((line) => !line.startsWith(">"));
+    if (meaningfulContent.length === 0) {
+        pushIssue(issues, "BLOCKER", "Tests section is empty.");
+    }
 }
-function lintAuthSpec(text, sections, issues) {
-  const fullText = text.toLowerCase();
-  const acText = sections["acceptance criteria"] ?? "";
-  const hasRedirectPath =
-    /redirect(path)?\s*:\s*["'`]?\/[a-z0-9/_-]+["'`]?/i.test(text) ||
-    /redirects?\s+to\s+["'`]?\/[a-z0-9/_-]+["'`]?/i.test(text);
-  const hasProvisioning =
-    /sign-up|signup|pre-seeded|pre seeded|admin-created|admin created|account provisioning|account creation|accounts are created/i.test(
-      text,
-    );
-  const hasErrorContract =
-    /auth\/[a-z-]+|error code|error mapping|invalid email or password|network-request-failed|wrong-password|user-not-found|friendly auth error/i.test(
-      text,
-    );
-  const hasAlreadyAuthenticatedContract =
-    /already-authenticated|already authenticated|if authenticated user visits \/login|signed-in user navigates to \/login|redirect immediately/i.test(
-      text,
-    );
-  const hasLoadingState =
-    /loading state|pending state|spinner|button disabled|disable submit during request|submitting/i.test(
-      text,
-    );
-  const mentionsSecurityRules = /security-rules|security rules/i.test(text);
-  const explainsFirestoreInteraction =
-    /firestore|document creation|users\/\{uid\}|users\/\{uid\}|create.*user document|post-login write|post login write/i.test(
-      text,
-    );
-  const hasOpenRedirectDecision =
-    /dashboard\s+path\s+is\s+undecided|\/dashboard\s+vs\s+\/app|open question/i.test(fullText);
-  if (!hasRedirectPath) {
-    pushIssue(issues, "BLOCKER", "[auth] Missing explicit redirect path contract.");
-  }
-  if (!hasProvisioning) {
-    pushIssue(issues, "BLOCKER", "[auth] Missing account provisioning strategy.");
-  }
-  if (!hasErrorContract) {
-    pushIssue(issues, "BLOCKER", "[auth] Missing auth error contract or error-code mapping.");
-  }
-  if (!hasAlreadyAuthenticatedContract) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      "[auth] Missing behavior for already-authenticated users visiting /login.",
-    );
-  }
-  if (!hasLoadingState) {
-    pushIssue(issues, "BLOCKER", "[auth] Missing loading/pending state contract.");
-  }
-  if (mentionsSecurityRules && !explainsFirestoreInteraction) {
-    pushIssue(
-      issues,
-      "WARN",
-      "[auth] Mentions security rules without explaining Auth ↔ Firestore interaction.",
-    );
-  }
-  if (hasOpenRedirectDecision) {
-    pushIssue(issues, "BLOCKER", "[auth] Contains unresolved redirect path decision.");
-  }
-  if (
-    /friendly auth error/i.test(acText) &&
-    !/invalid email or password|mapped error|error code/i.test(acText)
-  ) {
-    pushIssue(
-      issues,
-      "BLOCKER",
-      '[auth] Acceptance criteria mention "friendly auth error" without a concrete message or mapping.',
-    );
-  }
+function lintOpenQuestions(sections, issues) {
+    const openQuestions = sections["open questions"];
+    if (!openQuestions)
+        return;
+    const normalized = openQuestions.trim().toLowerCase();
+    if (!normalized)
+        return;
+    const isExplicitlyNone = /^(none|nenhuma)\.?$/i.test(normalized);
+    if (isExplicitlyNone)
+        return;
+    pushIssue(issues, "WARN", 'Open questions section is not explicitly resolved as "None" or "Nenhuma".');
 }
 function lintFile(file) {
-  const raw = fs.readFileSync(file, "utf8");
-  const text = normalizeWhitespace(raw);
-  const sections = getSections(text);
-  const issues = [];
-  lintTopLevel(text, issues);
-  lintRequiredSections(sections, issues);
-  lintVagueLanguage(text, issues);
-  lintAcceptanceCriteria(sections["acceptance criteria"], issues);
-  lintTestsSection(sections["tests"], issues);
-  const isAuthLike =
-    /[\\/]auth[\\/]/i.test(file) ||
-    /\bfirebase auth\b/i.test(text) ||
-    /\blogin\b/i.test(text) ||
-    /\bauthentication\b/i.test(text);
-  if (isAuthLike) {
-    lintAuthSpec(text, sections, issues);
-  }
-  return issues;
+    const raw = fs.readFileSync(file, "utf8");
+    const text = normalizeWhitespace(raw);
+    const sections = getSections(text);
+    const issues = [];
+    lintTopLevel(text, issues);
+    lintRequiredSections(sections, issues);
+    lintVagueLanguage(text, issues);
+    lintAcceptanceCriteria(sections["acceptance criteria"], issues);
+    lintTestsSection(sections["tests"], issues);
+    lintOpenQuestions(sections, issues);
+    return issues;
 }
-const files = walk(root);
+const specFiles = collectSpecFiles(root);
+const filesToLint = selectFilesToLint(specFiles);
 let hasBlocker = false;
 let hasWarn = false;
-for (const file of files) {
-  const issues = lintFile(file);
-  if (issues.length === 0) continue;
-  console.error(`\n[spec-lint] ${file}`);
-  for (const issue of issues) {
-    if (issue.severity === "BLOCKER") hasBlocker = true;
-    if (issue.severity === "WARN") hasWarn = true;
-    console.error(` - [${issue.severity}] ${issue.message}`);
-  }
+for (const file of filesToLint) {
+    const issues = lintFile(file);
+    if (issues.length === 0)
+        continue;
+    console.error(`\n[spec-lint] ${file}`);
+    for (const issue of issues) {
+        if (issue.severity === "BLOCKER")
+            hasBlocker = true;
+        if (issue.severity === "WARN")
+            hasWarn = true;
+        console.error(` - [${issue.severity}] ${issue.message}`);
+    }
 }
 if (hasBlocker) {
-  process.exit(1);
+    process.exit(1);
 }
 if (hasWarn) {
-  console.log("spec-lint passed with warnings");
-  process.exit(0);
+    console.log("spec-lint passed with warnings");
+    process.exit(0);
 }
 console.log("spec-lint passed");
