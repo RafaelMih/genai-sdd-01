@@ -34,7 +34,7 @@ This is not a suggestion tool. It must identify concrete failures.
    - `specs/features/<feature>/spec-v<version>.md`
    - `specs/features/<feature>/CONTEXT.md`
 
-2. Read `CONTEXT.md` first, then read the FULL spec
+2. Read `CONTEXT.md` first, then use summary retrieval with `intent: "review"`. Read the FULL spec only if the review cannot be completed safely from the short material.
 
 3. Perform two layers of validation
 

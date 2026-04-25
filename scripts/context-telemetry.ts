@@ -9,6 +9,7 @@ export type ContextTelemetryEvent = {
   origin?: string;
   feature: string;
   version?: string | null;
+  intent?: "implement" | "test" | "review" | "drift";
   mode: "summary" | "full" | "chunked";
   status?: "generated" | "cached" | "warning";
   durationMs?: number;
@@ -19,6 +20,7 @@ export type ContextTelemetryEvent = {
   cacheKey?: string | null;
   sessionId?: string | null;
   relatedSpecs?: string[];
+  servedBlocks?: string[];
 };
 
 const TELEMETRY_DIR = path.resolve(".telemetry");

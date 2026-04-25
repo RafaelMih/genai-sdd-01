@@ -36,6 +36,7 @@ Identify and classify any divergence between the current implementation, tests, 
 ### 1. Load Context
 
 - Read `CONTEXT.md` first.
+- Prefer summary retrieval with `intent: "drift"` before expanding to bigger spec excerpts.
 - Read the latest approved spec version.
 - Extract all Acceptance Criteria (ACs).
 - Load `TRACEABILITY.md` and map AC -> files -> tests.

@@ -37,27 +37,30 @@ When other docs repeat the same topic, prefer this file as the source of truth.
 
 ## AI Context
 
-### Escalation order (lazy loading — never skip steps)
+### Escalation order
 
-1. **CONTEXT.md** — always first; ~300–500 tokens; covers objective, scope, and ACs
-2. **summary mode** — when CONTEXT.md is not enough; ~1400 tokens max; key spec sections only
-3. **chunked mode** — when specific details are needed; ~900 tokens per chunk, max 6 chunks
-4. **full mode** — only when all other modes are insufficient; 4000 tokens max; hard block above 6000 tokens
+1. **CONTEXT.md** - always first; use the canonical short feature boundary
+2. **summary mode with intent** - ask only for the sections needed by the task
+3. **chunked mode with intent** - use the smallest chunk set possible
+4. **full mode** - only when every smaller option is insufficient and only with explicit justification
 
 Never load `full` as a first step. Never skip steps.
 
 ### Budget table
 
-| Mode | Soft limit | Hard block |
-|------|-----------|------------|
-| CONTEXT.md | 500t | — |
-| summary | 1400t | — |
-| chunked | 900t/chunk × 6 | — |
-| full | 4000t | 6000t |
+| Task intent | Preferred path | Soft limit | Hard block |
+| --- | --- | ---: | ---: |
+| implement | `CONTEXT.md` -> `summary(intent=implement)` -> `chunked(intent=implement)` | 700t | - |
+| test | `CONTEXT.md` -> `summary(intent=test)` -> `chunked(intent=test)` | 900t | - |
+| review | `CONTEXT.md` -> `summary(intent=review)` -> `chunked(intent=review)` | 1000t | - |
+| drift | `CONTEXT.md` -> `summary(intent=drift)` -> `chunked(intent=drift)` | 900t | - |
+| full | explicit exception only | 4000t | 6000t |
 
 ### Cache and telemetry
 
 - Repeated context retrieval must prefer the local cache when source files have not changed.
-- Cache fingerprint includes TRACEABILITY.md and changelog.md in addition to spec files.
+- Cache keys must include feature, version, intent, mode, and only the files relevant to that retrieval scope.
+- `TRACEABILITY-SUMMARY.md` is opt-in and should be loaded only for `test`, `review`, or `drift` work.
 - Budget overages are reported via telemetry; full mode overages above the hard block are rejected.
+- Telemetry must record served blocks so low-value context can be removed over time.
 - Run `npm run specs:archive` periodically so superseded specs do not leak into the active working set.

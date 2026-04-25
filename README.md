@@ -25,6 +25,7 @@ Projeto de estudo focado em GenAI com Spec-Driven Development (SDD), MCP e valid
 npm run spec:check
 npm run context:generate
 npm run ai:context <feature>
+npm run ai:context <feature> <intent>
 npm run context:report
 npm run specs:archive
 npm run typecheck
@@ -46,11 +47,18 @@ npm run e2e
 - `AGENTS.md` espelha as mesmas regras em formato neutro para Codex e outros agentes
 - A pasta `.claude/` permanece como local de skills, agentes e configuracoes MCP do workspace, mas o processo SDD descrito nos arquivos Markdown e compartilhado entre hosts de agente
 
+## Economia de tokens
+
+- Comece sempre por `CONTEXT.md`
+- Use `summary` com `intent` explicita antes de `chunked`
+- `TRACEABILITY-SUMMARY.md` entra apenas em tarefas de teste, review ou drift
+- Evite `full` por padrao; trate como excecao operacional
+
 ## Observacoes
 
 - `spec:check` valida lint, status, traceabilidade, cobertura de AC e drift tecnico
-- `ai:context` usa budget de contexto, warnings nao bloqueantes e cache local
-- O MCP de specs responde em modo resumido por padrao e registra telemetria
+- `ai:context` usa budget por intencao (`implement`, `test`, `review`, `drift`), warnings nao bloqueantes e cache local
+- O MCP de specs responde em modo resumido por padrao, com `intent` explicita e telemetria de blocos servidos
 - `specs:archive` move specs superseded para `specs/archive/<feature>/`
-- `context:report` mostra tokens estimados, duracao, cache hits e budget warnings
+- `context:report` mostra tokens estimados por modo, por intencao, por feature, cache hits e budget warnings
 - A suite E2E usa Playwright com ambiente local previsivel (`npm run dev:e2e`)

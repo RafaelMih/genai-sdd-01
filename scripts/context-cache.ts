@@ -4,6 +4,7 @@ import { access, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export type ContextCacheMode = "summary" | "full" | "chunked";
+export type ContextIntent = "implement" | "test" | "review" | "drift";
 
 type CachePayload = {
   createdAt: string;
@@ -32,6 +33,8 @@ export async function buildContextCacheKey(input: {
   feature: string;
   version?: string | null;
   mode: ContextCacheMode;
+  intent?: ContextIntent;
+  scope?: string;
   files: string[];
 }): Promise<string> {
   const fileFingerprints = await Promise.all(
@@ -48,6 +51,8 @@ export async function buildContextCacheKey(input: {
     feature: input.feature,
     version: input.version ?? null,
     mode: input.mode,
+    intent: input.intent ?? null,
+    scope: input.scope ?? null,
     files: fileFingerprints,
   });
 

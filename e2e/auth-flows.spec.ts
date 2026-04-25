@@ -34,8 +34,10 @@ async function signupAndReachDashboard(
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
+  await page.goto("/login");
+  await page.evaluate(() => {
     window.localStorage.clear();
+    window.sessionStorage.clear();
   });
 
   await mockPokemonApi(page);
