@@ -31,7 +31,10 @@ export function PokemonList() {
   return (
     <div className="px-6 pb-6">
       <div className="mb-4">
-        <label htmlFor="pokemon-name-filter" className="mb-1 block text-sm font-medium text-zinc-700">
+        <label
+          htmlFor="pokemon-name-filter"
+          className="mb-1 block text-sm font-medium text-zinc-700"
+        >
           Filtrar por nome
         </label>
         <input

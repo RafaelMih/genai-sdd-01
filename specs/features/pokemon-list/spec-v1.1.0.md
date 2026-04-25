@@ -63,12 +63,12 @@ O filtro nao dispara novas requisicoes. Ele opera somente sobre a lista carregad
 
 ## UI state contract
 
-| Estado | Renderizacao |
-| --- | --- |
-| loading | Texto "Carregando Pokemons..." |
-| error | Texto "Erro ao carregar Pokemons. Tente novamente." |
-| success sem filtro | Input de filtro + grade completa |
-| success com filtro | Input de filtro + grade filtrada |
+| Estado             | Renderizacao                                        |
+| ------------------ | --------------------------------------------------- |
+| loading            | Texto "Carregando Pokemons..."                      |
+| error              | Texto "Erro ao carregar Pokemons. Tente novamente." |
+| success sem filtro | Input de filtro + grade completa                    |
+| success com filtro | Input de filtro + grade filtrada                    |
 
 ## Filter contract
 
@@ -85,21 +85,21 @@ O filtro nao dispara novas requisicoes. Ele opera somente sobre a lista carregad
 
 ## Tests
 
-| Caso de teste | Tipo | ACs cobertos |
-| --- | --- | --- |
-| `parseIdFromUrl` extrai ID corretamente da URL | Unit | AC2, AC3 |
-| `buildSpriteUrl` constroi URL correta para ID | Unit | AC2 |
-| `formatPokemonNumber` formata com padding correto | Unit | AC2 |
-| `capitalizeName` capitaliza nome corretamente | Unit | AC2 |
-| `filterPokemonsByName` retorna apenas nomes que contem o valor digitado | Unit | AC8, AC9 |
-| `fetchPokemons` retorna lista com id, name e spriteUrl | Unit | AC3 |
-| `fetchPokemons` lanca erro em falha de rede | Unit | AC5 |
-| Dashboard exibe "Carregando Pokemons..." durante fetch | Integration | AC4 |
-| Dashboard exibe grade de cards apos fetch bem-sucedido | Integration | AC1, AC2, AC3 |
-| Dashboard exibe mensagem de erro apos falha do fetch | Integration | AC5 |
-| Dashboard exibe input de filtro apos sucesso | Integration | AC6 |
-| Dashboard aplica o filtro apenas apos 2 segundos de inatividade | Integration | AC7, AC8 |
-| Dashboard restaura a lista completa quando o input fica vazio | Integration | AC9 |
+| Caso de teste                                                           | Tipo        | ACs cobertos  |
+| ----------------------------------------------------------------------- | ----------- | ------------- |
+| `parseIdFromUrl` extrai ID corretamente da URL                          | Unit        | AC2, AC3      |
+| `buildSpriteUrl` constroi URL correta para ID                           | Unit        | AC2           |
+| `formatPokemonNumber` formata com padding correto                       | Unit        | AC2           |
+| `capitalizeName` capitaliza nome corretamente                           | Unit        | AC2           |
+| `filterPokemonsByName` retorna apenas nomes que contem o valor digitado | Unit        | AC8, AC9      |
+| `fetchPokemons` retorna lista com id, name e spriteUrl                  | Unit        | AC3           |
+| `fetchPokemons` lanca erro em falha de rede                             | Unit        | AC5           |
+| Dashboard exibe "Carregando Pokemons..." durante fetch                  | Integration | AC4           |
+| Dashboard exibe grade de cards apos fetch bem-sucedido                  | Integration | AC1, AC2, AC3 |
+| Dashboard exibe mensagem de erro apos falha do fetch                    | Integration | AC5           |
+| Dashboard exibe input de filtro apos sucesso                            | Integration | AC6           |
+| Dashboard aplica o filtro apenas apos 2 segundos de inatividade         | Integration | AC7, AC8      |
+| Dashboard restaura a lista completa quando o input fica vazio           | Integration | AC9           |
 
 ## Open questions
 

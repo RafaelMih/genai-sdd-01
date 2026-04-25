@@ -15,4 +15,5 @@
 - MCP Server para consulta de Pokemons via host de agente compativel com MCP
 
 ## Archived specs
+
 - Historical specs moved to `specs/archive/pokemon-list/`: spec-v1.0.0.md

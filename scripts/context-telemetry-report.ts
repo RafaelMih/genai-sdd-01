@@ -71,7 +71,13 @@ const byFeature = new Map<
 >();
 const byIntent = new Map<
   string,
-  { calls: number; estimatedTokens: number; durationMs: number; cacheHits: number; warnings: number }
+  {
+    calls: number;
+    estimatedTokens: number;
+    durationMs: number;
+    cacheHits: number;
+    warnings: number;
+  }
 >();
 const byMode = new Map<string, { calls: number; estimatedTokens: number; cacheHits: number }>();
 const byBlock = new Map<string, { uses: number; estimatedTokens: number }>();
@@ -221,10 +227,13 @@ if (feedbackRecords.length === 0) {
 }
 
 const ratedIds = new Set(feedbackRecords.map((feedback) => feedback.invocationId));
-const ratedCount = events.filter((event) => event.invocationId && ratedIds.has(event.invocationId)).length;
+const ratedCount = events.filter(
+  (event) => event.invocationId && ratedIds.has(event.invocationId),
+).length;
 const ups = feedbackRecords.filter((feedback) => feedback.rating === "up").length;
 const downs = feedbackRecords.filter((feedback) => feedback.rating === "down").length;
-const approvalRate = feedbackRecords.length > 0 ? ((ups / feedbackRecords.length) * 100).toFixed(1) : "-";
+const approvalRate =
+  feedbackRecords.length > 0 ? ((ups / feedbackRecords.length) * 100).toFixed(1) : "-";
 
 console.log(
   `\nRAG feedback: ${feedbackRecords.length} ratings (${ratedCount}/${events.length} invocations rated)`,

@@ -15,25 +15,30 @@ The `pokemon-agent` was the first instance of this need: a self-contained conver
 A specialized agent in this project follows this pattern:
 
 **1. Agent definition file** — `.claude/agents/<name>.md`
+
 - YAML frontmatter with `name` and `description`
 - `description` must include trigger phrases (when to activate) and skip conditions (when not to activate)
 - Body contains: spec reference, available MCP tools, numbered flows (one per AC group), and absolute rules
 
 **2. Dedicated MCP server** — `mcp/<name>-mcp.ts`
+
 - Exposes only the tools the agent needs; no general-purpose tools
 - Registered in the workspace agent configuration
 - The agent never calls external APIs directly — only through the MCP tools
 
 **3. Feature spec** — `specs/features/<name>/spec-v*.md`
+
 - Follows the standard SDD spec format (Status: Approved, ACs, tests section)
 - Is the authoritative source for the agent's behavior; the agent definition file is a derived artifact
 
 **4. Flows, not a general prompt**
+
 - The agent definition file describes concrete numbered flows (e.g., "Fluxo 1 — Listagem", "Fluxo 2 — Paginação")
 - Each flow maps to one or more ACs from the spec
 - Flows include step-by-step instructions and concrete output format examples
 
 **5. Absolute rules section**
+
 - No data invention: if the tool fails, the agent reports the error in the user's language
 - No scope creep: out-of-scope requests are explicitly rejected with a message
 - Output language matches the project's language standard (pt-BR)

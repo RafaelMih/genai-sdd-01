@@ -48,13 +48,13 @@ Never load `full` as a first step. Never skip steps.
 
 ### Budget table
 
-| Task intent | Preferred path | Soft limit | Hard block |
-| --- | --- | ---: | ---: |
-| implement | `CONTEXT.md` -> `summary(intent=implement)` -> `chunked(intent=implement)` | 700t | - |
-| test | `CONTEXT.md` -> `summary(intent=test)` -> `chunked(intent=test)` | 900t | - |
-| review | `CONTEXT.md` -> `summary(intent=review)` -> `chunked(intent=review)` | 1000t | - |
-| drift | `CONTEXT.md` -> `summary(intent=drift)` -> `chunked(intent=drift)` | 900t | - |
-| full | explicit exception only | 4000t | 6000t |
+| Task intent | Preferred path                                                             | Soft limit | Hard block |
+| ----------- | -------------------------------------------------------------------------- | ---------: | ---------: |
+| implement   | `CONTEXT.md` -> `summary(intent=implement)` -> `chunked(intent=implement)` |       700t |          - |
+| test        | `CONTEXT.md` -> `summary(intent=test)` -> `chunked(intent=test)`           |       900t |          - |
+| review      | `CONTEXT.md` -> `summary(intent=review)` -> `chunked(intent=review)`       |      1000t |          - |
+| drift       | `CONTEXT.md` -> `summary(intent=drift)` -> `chunked(intent=drift)`         |       900t |          - |
+| full        | explicit exception only                                                    |      4000t |      6000t |
 
 ### Cache and telemetry
 

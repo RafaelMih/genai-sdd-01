@@ -50,7 +50,11 @@ async function resolveSessionId(): Promise<string> {
 
   const id = randomUUID();
   await mkdir(TELEMETRY_DIR, { recursive: true });
-  await writeFile(SESSION_FILE, JSON.stringify({ id, updatedAt: new Date().toISOString() }), "utf8");
+  await writeFile(
+    SESSION_FILE,
+    JSON.stringify({ id, updatedAt: new Date().toISOString() }),
+    "utf8",
+  );
   return id;
 }
 

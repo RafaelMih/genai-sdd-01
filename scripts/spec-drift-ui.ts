@@ -134,8 +134,7 @@ function extractSpecRedirects(specText: string): Set<string> {
   }
 
   // Prosa com "replace": "redirects to `/rota`" ou "navigates to `/rota`" + "replace" próximo
-  const PROSE_RE =
-    /(?:redirect(?:s|ed)?|navigates?)\s+to\s+[`'"]?(\/[a-z][a-z0-9\-_/]*)[`'"]?/gi;
+  const PROSE_RE = /(?:redirect(?:s|ed)?|navigates?)\s+to\s+[`'"]?(\/[a-z][a-z0-9\-_/]*)[`'"]?/gi;
   for (const match of specText.matchAll(PROSE_RE)) {
     const route = match[1];
     const surroundStart = Math.max(0, match.index! - 120);

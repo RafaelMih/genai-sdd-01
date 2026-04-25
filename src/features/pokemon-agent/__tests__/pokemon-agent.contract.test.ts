@@ -4,7 +4,10 @@ import { getPokemon, listPokemons } from "../../../../mcp/pokemon-service";
 const PIKACHU_DETAIL = {
   id: 25,
   name: "pikachu",
-  sprites: { front_default: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" },
+  sprites: {
+    front_default:
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
+  },
   types: [{ type: { name: "electric" } }],
   stats: [
     { stat: { name: "hp" }, base_stat: 35 },
@@ -93,9 +96,7 @@ describe("pokemon-agent — contrato getPokemon (AC4)", () => {
 
     await getPokemon("pikachu");
 
-    expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-      "https://pokeapi.co/api/v2/pokemon/pikachu",
-    );
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith("https://pokeapi.co/api/v2/pokemon/pikachu");
   });
 
   it("AC4: chama a URL correta por numero", async () => {
@@ -103,9 +104,7 @@ describe("pokemon-agent — contrato getPokemon (AC4)", () => {
 
     await getPokemon("25");
 
-    expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-      "https://pokeapi.co/api/v2/pokemon/25",
-    );
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith("https://pokeapi.co/api/v2/pokemon/25");
   });
 
   it("AC4: retorna id, name, sprite, types e stats", async () => {

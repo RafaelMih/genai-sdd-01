@@ -68,7 +68,9 @@ const issues = issueArg
   : undefined;
 const comment = restArgs.join(" ") || undefined;
 
-async function resolveInvocationId(input: string): Promise<{ invocationId: string; feature?: string }> {
+async function resolveInvocationId(
+  input: string,
+): Promise<{ invocationId: string; feature?: string }> {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   if (uuidRegex.test(input)) {
@@ -115,4 +117,6 @@ await mkdir(TELEMETRY_DIR, { recursive: true });
 await appendFile(FEEDBACK_FILE, `${JSON.stringify(record)}\n`, "utf8");
 
 const issueLabel = issues && issues.length > 0 ? ` [${issues.join(", ")}]` : "";
-console.log(`Feedback recorded: ${rating}${issueLabel} for ${invocationId}${comment ? ` - "${comment}"` : ""}`);
+console.log(
+  `Feedback recorded: ${rating}${issueLabel} for ${invocationId}${comment ? ` - "${comment}"` : ""}`,
+);

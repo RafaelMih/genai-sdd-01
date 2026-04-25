@@ -44,7 +44,9 @@ for (const file of agentFiles) {
   const content = fs.readFileSync(file, "utf8");
 
   if (!hasLanguageMandate(content)) {
-    console.error(`[agent:lang-check] ${label}: sem mandato de idioma explícito (esperado: "pt-BR")`);
+    console.error(
+      `[agent:lang-check] ${label}: sem mandato de idioma explícito (esperado: "pt-BR")`,
+    );
     hasErrors = true;
     continue;
   }

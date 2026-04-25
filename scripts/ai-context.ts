@@ -97,7 +97,9 @@ async function loadManifest(): Promise<SpecManifestEntry[]> {
 
 async function loadFeatureArtifacts(featureName: string): Promise<FeatureArtifacts> {
   const [context, traceabilitySummary] = await Promise.all([
-    readFile(path.resolve("specs", "features", featureName, "CONTEXT.md"), "utf8").catch(() => null),
+    readFile(path.resolve("specs", "features", featureName, "CONTEXT.md"), "utf8").catch(
+      () => null,
+    ),
     readFile(
       path.resolve("specs", "features", featureName, "TRACEABILITY-SUMMARY.md"),
       "utf8",

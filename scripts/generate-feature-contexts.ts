@@ -63,7 +63,9 @@ function extractAcceptanceCriteria(content: string): string[] {
     .map((line) => (line.length > 160 ? `${line.slice(0, 157)}...` : line));
 }
 
-function extractContractSections(sections: Map<string, string>): Array<{ heading: string; body: string }> {
+function extractContractSections(
+  sections: Map<string, string>,
+): Array<{ heading: string; body: string }> {
   const headings = [...sections.keys()].filter((heading) => /contract/i.test(heading));
 
   return headings.slice(0, 4).map((heading) => ({
@@ -113,7 +115,9 @@ function buildContextMarkdown(input: {
 }): string {
   const objective = input.sections.get("Objective")?.trim() ?? "Nao definido.";
   const scope = input.sections.get("Scope")?.trim() ?? "Nao definido.";
-  const acceptanceCriteria = extractAcceptanceCriteria(input.sections.get("Acceptance criteria") ?? "");
+  const acceptanceCriteria = extractAcceptanceCriteria(
+    input.sections.get("Acceptance criteria") ?? "",
+  );
   const contracts = extractContractSections(input.sections);
   const targetFiles = extractTargetFiles(input.traceabilitySummary);
 

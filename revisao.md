@@ -49,67 +49,67 @@ Hoje o repositorio possui:
 
 ### Praticas em uso
 
-| Conceito | Status | Ponto forte | Ponto fraco |
-| --- | --- | --- | --- |
-| Spec-Driven Development | Usado | Reduz ambiguidade e scope creep | Tem overhead em features pequenas |
-| Specs versionadas + archive | Usado | Historico rastreavel com working set mais enxuto | Sem ADR dedicado para estrategia de CI/CD |
-| Status gate (`Approved`) | Usado | Aprovacao explicita antes de implementar | Ainda nao e um bloqueio dedicado no CI fora do `spec:check` |
-| Traceability AC -> codigo -> teste | Usado | Facilita auditoria e refactor seguro | Continua dependente de manutencao disciplinada |
-| `CONTEXT.md` auto-gerado | Usado | Reduz tokens e acelera implementacao | Pode carregar secoes que nao sao uteis para toda tarefa |
-| Cache local de contexto | Usado | Evita reprocessamento quando os arquivos nao mudam | Base de telemetria ainda pequena para medir hit rate real |
-| Telemetria de contexto | Usado | Registra tokens estimados, duracao, cache hit e sessao | Ainda nao correlaciona tarefa de negocio ou comando do Claude |
-| Budget por modo | Usado | Retrieval tem limites claros e hard block em `full` | O budget de 4000 em `full` ainda e soft; hard block so em 6000 |
-| Pipeline `spec:check` | Usado | Verifica 6 guardrails de uma vez, incluindo drift de rotas dinamicas e redirects | Extracao de rotas/redirects dos specs e baseada em texto; falsos negativos possiveis |
-| Drift detection Firestore | Usado | Detecta divergencia de contratos Firestore | Escopo limitado ao schema/write contract |
-| Drift detection UI/rotas | Usado | Detecta rotas estaticas e dinamicas; WARN para navigate sem replace sem cobertura | Extracao por regex; nao cobre navegacao programatica complexa |
-| Spec lint pre-retrieval | Usado | Bloqueia TBD antes de servir contexto ao LLM | Cobre apenas BLOCKER markers; nao faz lint completo |
-| Session ID automatico | Usado | Persiste sessao por 8h em `.telemetry/.session` sem env manual | TTL fixo; nao detecta troca de contexto dentro da janela |
-| Feedback de RAG | Usado | Registra utilidade dos chunks por invocacao com relatorio integrado | Requer acao manual do desenvolvedor para avaliar |
-| AC coverage | Usado | Garante que todo AC esta mapeado | Nao prova execucao real do teste, so referencia |
-| Unit + integration tests | Usado | 91 testes cobrindo todas as 5 features, incluindo contrato e idioma do agente | AC5 verificacao real do output do LLM ainda e manual |
-| E2E Playwright | Usado | 13 testes cobrindo auth e pokemon-list, incluindo casos negativos | Ainda sem E2E de browser para o agente pokemon (agente nao tem UI propria) |
-| MCP spec-rag | Usado | Retrieval com summary/full, cache, telemetria e hard block | Base de feedback ainda pequena para otimizar retrieval |
-| MCP pokemon | Usado | Encapsula o acesso a Pokemon; `pokemon-service.ts` e testavel independentemente | Ainda sem cache proprio da API |
-| Agente especializado | Usado | Contrato documentado, padrao em ADR-004 e testes de contrato AC1-AC5 | AC5 verificacao do output real do LLM requer execucao manual |
-| ADRs | Usado | 4 decisoes formalizadas, incluindo padrao de agente especializado | Sem ADR para estrategia de CI/CD |
-| Pre-commit spec hook | Usado | Bloqueia commit com `spec:check` + `traceability:generate` + `specs:archive` | Requer `npm install` para estar ativo em clone novo |
-| Lazy escalation de contexto | Usado | `CONTEXT` -> `summary` -> `chunked` -> `full` | Enforcement ainda depende do tooling e da disciplina |
-| `TRACEABILITY-SUMMARY.md` | Usado | Regenerado automaticamente no pre-commit e via `governance`; reduz custo de contexto | Nao substitui auditoria detalhada do `TRACEABILITY.md` |
-| Telemetria por sessao | Usado | Session ID automatico com TTL de 8h e breakdown por sessao | TTL fixo; sessoes longas podem acumular eventos de contextos diferentes |
-| Organizacao por feature | Usado | Alta coesao por dominio | Ainda ha utilitarios compartilhados fora das features |
-| Firebase modular SDK | Usado | Setup isolado e compativel com tree-shaking | Sem fragilidade relevante no estado atual |
-| Zod validation | Usado | Boundary de entrada bem definido | Ainda existe repeticao simples entre schemas |
-| Global standards doc | Usado | Fonte unica para budget e escalacao | Pode divergir de outros docs se nao for mantido |
-| Skills SDD | Usado | Padronizam review, edit, resolve, implement e drift; validadas por `skill:lint` com AC refs e outputs | Skill:lint valida estrutura mas nao comportamento das skills |
-| Script `governance` | Usado | `npm run governance` roda `traceability:generate` + `specs:archive`; gate no CI detecta summaries desatualizados | Governance no CI valida que pode rodar, nao que o output e correto |
-| `skill:lint` | Usado | Valida frontmatter, H2, referencias a ACs e secao de outputs em skills e agentes | Valida estrutura; nao verifica comportamento ou cobertura real dos ACs |
-| Pipeline de CI remoto | Usado | `ci.yml` (push) e `spec-quality.yml` (PR) rodam `spec:check` + `skill:lint` + governance gate | Sem gate de PR dedicado para `agent:lang-check`; CD depende de secrets do Firebase |
-| Verificacao de idioma do agente | Usado | `agent:lang-check` verifica mandato pt-BR no arquivo de definicao; `detectLanguage` heuristica para blocos de exemplo | Verifica declaracao, nao o output real do LLM; heuristica pode ter imprecisoes |
-| Deteccao de rotas dinamicas | Usado | Normalizacao `:param` em `spec-drift-ui`; WARN para navigate sem replace sem cobertura | WARN, nao BLOCKER; navigate programatico complexo pode nao ser detectado |
+| Conceito                           | Status | Ponto forte                                                                                                           | Ponto fraco                                                                          |
+| ---------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Spec-Driven Development            | Usado  | Reduz ambiguidade e scope creep                                                                                       | Tem overhead em features pequenas                                                    |
+| Specs versionadas + archive        | Usado  | Historico rastreavel com working set mais enxuto                                                                      | Sem ADR dedicado para estrategia de CI/CD                                            |
+| Status gate (`Approved`)           | Usado  | Aprovacao explicita antes de implementar                                                                              | Ainda nao e um bloqueio dedicado no CI fora do `spec:check`                          |
+| Traceability AC -> codigo -> teste | Usado  | Facilita auditoria e refactor seguro                                                                                  | Continua dependente de manutencao disciplinada                                       |
+| `CONTEXT.md` auto-gerado           | Usado  | Reduz tokens e acelera implementacao                                                                                  | Pode carregar secoes que nao sao uteis para toda tarefa                              |
+| Cache local de contexto            | Usado  | Evita reprocessamento quando os arquivos nao mudam                                                                    | Base de telemetria ainda pequena para medir hit rate real                            |
+| Telemetria de contexto             | Usado  | Registra tokens estimados, duracao, cache hit e sessao                                                                | Ainda nao correlaciona tarefa de negocio ou comando do Claude                        |
+| Budget por modo                    | Usado  | Retrieval tem limites claros e hard block em `full`                                                                   | O budget de 4000 em `full` ainda e soft; hard block so em 6000                       |
+| Pipeline `spec:check`              | Usado  | Verifica 6 guardrails de uma vez, incluindo drift de rotas dinamicas e redirects                                      | Extracao de rotas/redirects dos specs e baseada em texto; falsos negativos possiveis |
+| Drift detection Firestore          | Usado  | Detecta divergencia de contratos Firestore                                                                            | Escopo limitado ao schema/write contract                                             |
+| Drift detection UI/rotas           | Usado  | Detecta rotas estaticas e dinamicas; WARN para navigate sem replace sem cobertura                                     | Extracao por regex; nao cobre navegacao programatica complexa                        |
+| Spec lint pre-retrieval            | Usado  | Bloqueia TBD antes de servir contexto ao LLM                                                                          | Cobre apenas BLOCKER markers; nao faz lint completo                                  |
+| Session ID automatico              | Usado  | Persiste sessao por 8h em `.telemetry/.session` sem env manual                                                        | TTL fixo; nao detecta troca de contexto dentro da janela                             |
+| Feedback de RAG                    | Usado  | Registra utilidade dos chunks por invocacao com relatorio integrado                                                   | Requer acao manual do desenvolvedor para avaliar                                     |
+| AC coverage                        | Usado  | Garante que todo AC esta mapeado                                                                                      | Nao prova execucao real do teste, so referencia                                      |
+| Unit + integration tests           | Usado  | 91 testes cobrindo todas as 5 features, incluindo contrato e idioma do agente                                         | AC5 verificacao real do output do LLM ainda e manual                                 |
+| E2E Playwright                     | Usado  | 13 testes cobrindo auth e pokemon-list, incluindo casos negativos                                                     | Ainda sem E2E de browser para o agente pokemon (agente nao tem UI propria)           |
+| MCP spec-rag                       | Usado  | Retrieval com summary/full, cache, telemetria e hard block                                                            | Base de feedback ainda pequena para otimizar retrieval                               |
+| MCP pokemon                        | Usado  | Encapsula o acesso a Pokemon; `pokemon-service.ts` e testavel independentemente                                       | Ainda sem cache proprio da API                                                       |
+| Agente especializado               | Usado  | Contrato documentado, padrao em ADR-004 e testes de contrato AC1-AC5                                                  | AC5 verificacao do output real do LLM requer execucao manual                         |
+| ADRs                               | Usado  | 4 decisoes formalizadas, incluindo padrao de agente especializado                                                     | Sem ADR para estrategia de CI/CD                                                     |
+| Pre-commit spec hook               | Usado  | Bloqueia commit com `spec:check` + `traceability:generate` + `specs:archive`                                          | Requer `npm install` para estar ativo em clone novo                                  |
+| Lazy escalation de contexto        | Usado  | `CONTEXT` -> `summary` -> `chunked` -> `full`                                                                         | Enforcement ainda depende do tooling e da disciplina                                 |
+| `TRACEABILITY-SUMMARY.md`          | Usado  | Regenerado automaticamente no pre-commit e via `governance`; reduz custo de contexto                                  | Nao substitui auditoria detalhada do `TRACEABILITY.md`                               |
+| Telemetria por sessao              | Usado  | Session ID automatico com TTL de 8h e breakdown por sessao                                                            | TTL fixo; sessoes longas podem acumular eventos de contextos diferentes              |
+| Organizacao por feature            | Usado  | Alta coesao por dominio                                                                                               | Ainda ha utilitarios compartilhados fora das features                                |
+| Firebase modular SDK               | Usado  | Setup isolado e compativel com tree-shaking                                                                           | Sem fragilidade relevante no estado atual                                            |
+| Zod validation                     | Usado  | Boundary de entrada bem definido                                                                                      | Ainda existe repeticao simples entre schemas                                         |
+| Global standards doc               | Usado  | Fonte unica para budget e escalacao                                                                                   | Pode divergir de outros docs se nao for mantido                                      |
+| Skills SDD                         | Usado  | Padronizam review, edit, resolve, implement e drift; validadas por `skill:lint` com AC refs e outputs                 | Skill:lint valida estrutura mas nao comportamento das skills                         |
+| Script `governance`                | Usado  | `npm run governance` roda `traceability:generate` + `specs:archive`; gate no CI detecta summaries desatualizados      | Governance no CI valida que pode rodar, nao que o output e correto                   |
+| `skill:lint`                       | Usado  | Valida frontmatter, H2, referencias a ACs e secao de outputs em skills e agentes                                      | Valida estrutura; nao verifica comportamento ou cobertura real dos ACs               |
+| Pipeline de CI remoto              | Usado  | `ci.yml` (push) e `spec-quality.yml` (PR) rodam `spec:check` + `skill:lint` + governance gate                         | Sem gate de PR dedicado para `agent:lang-check`; CD depende de secrets do Firebase   |
+| Verificacao de idioma do agente    | Usado  | `agent:lang-check` verifica mandato pt-BR no arquivo de definicao; `detectLanguage` heuristica para blocos de exemplo | Verifica declaracao, nao o output real do LLM; heuristica pode ter imprecisoes       |
+| Deteccao de rotas dinamicas        | Usado  | Normalizacao `:param` em `spec-drift-ui`; WARN para navigate sem replace sem cobertura                                | WARN, nao BLOCKER; navigate programatico complexo pode nao ser detectado             |
 
 ### Praticas nao em uso
 
-| Conceito | Status | Por que nao usar agora | Quando considerar |
-| --- | --- | --- | --- |
-| Cache semantico distribuido | Nao usado | Overkill para o tamanho atual do repo | Se crescer para mais features ou uso multiusuario |
-| Token tracking real por API | Nao usado | O projeto mede estimativa, nao usage real do provider | Quando houver integracao direta com uso real da API |
-| Verificacao de output real do LLM | Nao usado | Requer execucao do agente em ambiente controlado | Quando houver infraestrutura de teste de agentes LLM |
+| Conceito                          | Status    | Por que nao usar agora                                | Quando considerar                                    |
+| --------------------------------- | --------- | ----------------------------------------------------- | ---------------------------------------------------- |
+| Cache semantico distribuido       | Nao usado | Overkill para o tamanho atual do repo                 | Se crescer para mais features ou uso multiusuario    |
+| Token tracking real por API       | Nao usado | O projeto mede estimativa, nao usage real do provider | Quando houver integracao direta com uso real da API  |
+| Verificacao de output real do LLM | Nao usado | Requer execucao do agente em ambiente controlado      | Quando houver infraestrutura de teste de agentes LLM |
 
 ## Economia de tokens
 
 Praticas de maior impacto hoje:
 
-| Pratica | Status | Impacto | Situacao atual |
-| --- | --- | --- | --- |
-| `CONTEXT.md` como primeira camada | Aplicado | Alto | Continua sendo a entrada preferencial |
-| `summary` como padrao no MCP | Aplicado | Alto | Budget documentado e retrieval curto por padrao |
-| Lazy escalation | Aplicado | Alto | Fluxo formalizado em docs e skills |
-| Hard block em `full` | Aplicado | Alto | Rejeita acima de 6000 tokens em CLI e MCP |
-| Spec lint pre-retrieval | Aplicado | Medio | Bloqueia TBD antes do LLM em `ai-context` e `spec-rag-mcp` |
-| `TRACEABILITY-SUMMARY` no contexto | Aplicado | Medio | Regenerado automaticamente no pre-commit e via `governance` |
-| Cache local por fingerprint | Aplicado | Medio | Inclui spec, contexto, traceability, summary e changelog |
-| `chunked` mais restritivo | Aplicado | Medio | `MAX_CONTEXT_CHUNKS = 6` |
-| Archive do working set | Aplicado | Medio | Specs antigas sairam das pastas ativas |
+| Pratica                            | Status   | Impacto | Situacao atual                                              |
+| ---------------------------------- | -------- | ------- | ----------------------------------------------------------- |
+| `CONTEXT.md` como primeira camada  | Aplicado | Alto    | Continua sendo a entrada preferencial                       |
+| `summary` como padrao no MCP       | Aplicado | Alto    | Budget documentado e retrieval curto por padrao             |
+| Lazy escalation                    | Aplicado | Alto    | Fluxo formalizado em docs e skills                          |
+| Hard block em `full`               | Aplicado | Alto    | Rejeita acima de 6000 tokens em CLI e MCP                   |
+| Spec lint pre-retrieval            | Aplicado | Medio   | Bloqueia TBD antes do LLM em `ai-context` e `spec-rag-mcp`  |
+| `TRACEABILITY-SUMMARY` no contexto | Aplicado | Medio   | Regenerado automaticamente no pre-commit e via `governance` |
+| Cache local por fingerprint        | Aplicado | Medio   | Inclui spec, contexto, traceability, summary e changelog    |
+| `chunked` mais restritivo          | Aplicado | Medio   | `MAX_CONTEXT_CHUNKS = 6`                                    |
+| Archive do working set             | Aplicado | Medio   | Specs antigas sairam das pastas ativas                      |
 
 ### Regras de escalacao de contexto
 

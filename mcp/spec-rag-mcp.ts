@@ -56,10 +56,9 @@ async function readSpecFile(relativePath: string): Promise<string> {
 async function readFeatureArtifacts(feature: string): Promise<FeatureArtifacts> {
   const [context, traceabilitySummary] = await Promise.all([
     readFile(path.resolve("specs", "features", feature, "CONTEXT.md"), "utf8").catch(() => null),
-    readFile(
-      path.resolve("specs", "features", feature, "TRACEABILITY-SUMMARY.md"),
-      "utf8",
-    ).catch(() => null),
+    readFile(path.resolve("specs", "features", feature, "TRACEABILITY-SUMMARY.md"), "utf8").catch(
+      () => null,
+    ),
   ]);
 
   return { context, traceabilitySummary };
@@ -120,10 +119,41 @@ function buildSummary(
 ): string {
   const sections = getSections(content);
   const headingOrder: Record<ContextIntent, string[]> = {
-    implement: ["Objective", "Scope", "Acceptance criteria", "Validation contract", "Read contract", "Write contract", "Redirect contract", "Dependencies"],
-    test: ["Acceptance criteria", "Tests", "Validation contract", "Error messages contract", "Redirect contract"],
-    review: ["Objective", "Scope", "Acceptance criteria", "Validation contract", "Read contract", "Write contract", "Dependencies", "Open questions"],
-    drift: ["Acceptance criteria", "Read contract", "Write contract", "Redirect contract", "User flow", "Dependencies"],
+    implement: [
+      "Objective",
+      "Scope",
+      "Acceptance criteria",
+      "Validation contract",
+      "Read contract",
+      "Write contract",
+      "Redirect contract",
+      "Dependencies",
+    ],
+    test: [
+      "Acceptance criteria",
+      "Tests",
+      "Validation contract",
+      "Error messages contract",
+      "Redirect contract",
+    ],
+    review: [
+      "Objective",
+      "Scope",
+      "Acceptance criteria",
+      "Validation contract",
+      "Read contract",
+      "Write contract",
+      "Dependencies",
+      "Open questions",
+    ],
+    drift: [
+      "Acceptance criteria",
+      "Read contract",
+      "Write contract",
+      "Redirect contract",
+      "User flow",
+      "Dependencies",
+    ],
   };
 
   const maxSections = isPrimaryFeature ? 4 : 2;
@@ -256,11 +286,7 @@ Path: ${entry.path}
 Type: ${entry.type}
 Version: ${entry.version ?? null}
 
-${
-  detail === "full"
-    ? content
-    : buildSummary(entry, content, intent, entry.id === featureSpec.id)
-}`,
+${detail === "full" ? content : buildSummary(entry, content, intent, entry.id === featureSpec.id)}`,
       )
       .join("\n\n---\n\n"),
   );
@@ -320,7 +346,8 @@ server.registerTool(
   "retrieve_relevant_specs",
   {
     title: "Retrieve Relevant Specs",
-    description: "Recupera specs relevantes do manifest com modo resumido ou completo e intencao explicita.",
+    description:
+      "Recupera specs relevantes do manifest com modo resumido ou completo e intencao explicita.",
     inputSchema: {
       feature: z.string().min(1),
       version: z.string().optional(),

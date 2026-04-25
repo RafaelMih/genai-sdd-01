@@ -19,11 +19,7 @@ async function mockPokemonApi(page: Page) {
   });
 }
 
-async function signupAndReachDashboard(
-  page: Page,
-  email: string,
-  password = "pikachu123",
-) {
+async function signupAndReachDashboard(page: Page, email: string, password = "pikachu123") {
   await page.goto("/signup");
   await page.getByLabel("Nome").fill("Ash");
   await page.getByLabel("E-mail").fill(email);

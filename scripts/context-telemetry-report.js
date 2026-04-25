@@ -3,17 +3,17 @@ import fs from "node:fs";
 import path from "node:path";
 const TELEMETRY_FILE = path.resolve(".telemetry", "context-usage.jsonl");
 if (!fs.existsSync(TELEMETRY_FILE)) {
-    console.log("No context telemetry recorded yet.");
-    process.exit(0);
+  console.log("No context telemetry recorded yet.");
+  process.exit(0);
 }
 const events = fs
-    .readFileSync(TELEMETRY_FILE, "utf8")
-    .split(/\r?\n/)
-    .filter(Boolean)
-    .map((line) => JSON.parse(line));
+  .readFileSync(TELEMETRY_FILE, "utf8")
+  .split(/\r?\n/)
+  .filter(Boolean)
+  .map((line) => JSON.parse(line));
 if (events.length === 0) {
-    console.log("No context telemetry recorded yet.");
-    process.exit(0);
+  console.log("No context telemetry recorded yet.");
+  process.exit(0);
 }
 const totalTokens = events.reduce((sum, event) => sum + (event.estimatedTokens ?? 0), 0);
 const totalChunks = events.reduce((sum, event) => sum + (event.chunkCount ?? 0), 0);
@@ -22,61 +22,69 @@ const cacheHits = events.filter((event) => event.status === "cached").length;
 const warnings = events.filter((event) => event.budgetExceeded).length;
 const byFeature = new Map();
 for (const event of events) {
-    const current = byFeature.get(event.feature) ?? {
-        calls: 0,
-        estimatedTokens: 0,
-        chunks: 0,
-        summaryCalls: 0,
-        fullCalls: 0,
-        durationMs: 0,
-        cacheHits: 0,
-        warnings: 0,
-    };
-    current.calls += 1;
-    current.estimatedTokens += event.estimatedTokens ?? 0;
-    current.chunks += event.chunkCount ?? 0;
-    current.durationMs += event.durationMs ?? 0;
-    if (event.status === "cached")
-        current.cacheHits += 1;
-    if (event.budgetExceeded)
-        current.warnings += 1;
-    if (event.mode === "full")
-        current.fullCalls += 1;
-    if (event.mode === "summary" || event.mode === "chunked")
-        current.summaryCalls += 1;
-    byFeature.set(event.feature, current);
+  const current = byFeature.get(event.feature) ?? {
+    calls: 0,
+    estimatedTokens: 0,
+    chunks: 0,
+    summaryCalls: 0,
+    fullCalls: 0,
+    durationMs: 0,
+    cacheHits: 0,
+    warnings: 0,
+  };
+  current.calls += 1;
+  current.estimatedTokens += event.estimatedTokens ?? 0;
+  current.chunks += event.chunkCount ?? 0;
+  current.durationMs += event.durationMs ?? 0;
+  if (event.status === "cached") current.cacheHits += 1;
+  if (event.budgetExceeded) current.warnings += 1;
+  if (event.mode === "full") current.fullCalls += 1;
+  if (event.mode === "summary" || event.mode === "chunked") current.summaryCalls += 1;
+  byFeature.set(event.feature, current);
 }
 console.log(`Events: ${events.length}`);
 console.log(`Estimated tokens: ${totalTokens}`);
 console.log(`Chunks/documents served: ${totalChunks}`);
-console.log(`Average duration: ${events.length > 0 ? (totalDuration / events.length).toFixed(2) : "0"}ms`);
+console.log(
+  `Average duration: ${events.length > 0 ? (totalDuration / events.length).toFixed(2) : "0"}ms`,
+);
 console.log(`Cache hits: ${cacheHits}`);
 console.log(`Budget warnings: ${warnings}`);
 console.log("");
-console.log("| Feature | Calls | Est. tokens | Chunks/docs | Avg ms | Cache hits | Warnings | Summary/chunked | Full |");
+console.log(
+  "| Feature | Calls | Est. tokens | Chunks/docs | Avg ms | Cache hits | Warnings | Summary/chunked | Full |",
+);
 console.log("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |");
-for (const [feature, data] of [...byFeature.entries()].sort((left, right) => left[0].localeCompare(right[0]))) {
-    console.log(`| ${feature} | ${data.calls} | ${data.estimatedTokens} | ${data.chunks} | ${(data.durationMs / data.calls).toFixed(2)} | ${data.cacheHits} | ${data.warnings} | ${data.summaryCalls} | ${data.fullCalls} |`);
+for (const [feature, data] of [...byFeature.entries()].sort((left, right) =>
+  left[0].localeCompare(right[0]),
+)) {
+  console.log(
+    `| ${feature} | ${data.calls} | ${data.estimatedTokens} | ${data.chunks} | ${(data.durationMs / data.calls).toFixed(2)} | ${data.cacheHits} | ${data.warnings} | ${data.summaryCalls} | ${data.fullCalls} |`,
+  );
 }
 const bySession = new Map();
 for (const event of events) {
-    const sid = event.sessionId ?? "unknown";
-    const current = bySession.get(sid) ?? {
-        calls: 0,
-        features: new Set(),
-        estimatedTokens: 0,
-        durationMs: 0,
-    };
-    current.calls += 1;
-    current.features.add(event.feature);
-    current.estimatedTokens += event.estimatedTokens ?? 0;
-    current.durationMs += event.durationMs ?? 0;
-    bySession.set(sid, current);
+  const sid = event.sessionId ?? "unknown";
+  const current = bySession.get(sid) ?? {
+    calls: 0,
+    features: new Set(),
+    estimatedTokens: 0,
+    durationMs: 0,
+  };
+  current.calls += 1;
+  current.features.add(event.feature);
+  current.estimatedTokens += event.estimatedTokens ?? 0;
+  current.durationMs += event.durationMs ?? 0;
+  bySession.set(sid, current);
 }
 console.log("");
 console.log("| Session | Calls | Est. tokens | Total ms | Features |");
 console.log("| --- | ---: | ---: | ---: | --- |");
-for (const [sessionId, data] of [...bySession.entries()].sort((left, right) => right[1].calls - left[1].calls)) {
-    const shortId = sessionId.length > 8 ? `${sessionId.slice(0, 8)}…` : sessionId;
-    console.log(`| ${shortId} | ${data.calls} | ${data.estimatedTokens} | ${data.durationMs} | ${[...data.features].join(", ")} |`);
+for (const [sessionId, data] of [...bySession.entries()].sort(
+  (left, right) => right[1].calls - left[1].calls,
+)) {
+  const shortId = sessionId.length > 8 ? `${sessionId.slice(0, 8)}…` : sessionId;
+  console.log(
+    `| ${shortId} | ${data.calls} | ${data.estimatedTokens} | ${data.durationMs} | ${[...data.features].join(", ")} |`,
+  );
 }

@@ -95,9 +95,7 @@ async function main() {
     .concat("\n");
 
   if (dryRun) {
-    process.stdout.write(
-      `Would update ${codexConfigPath} with:\n\n${serverBlocks}`,
-    );
+    process.stdout.write(`Would update ${codexConfigPath} with:\n\n${serverBlocks}`);
     return;
   }
 
