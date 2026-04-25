@@ -5,4 +5,4 @@
 - [x] Criar traceability `specs/features/pokemon-agent/TRACEABILITY.md`
 - [x] Atualizar `specs/.index/spec-manifest.json`
 - [x] Criar `.claude/agents/pokemon-agent.md`
-- [x] Atualizar `CLAUDE.md` com trigger automático
+- [x] Atualizar os arquivos de instrucao raiz (`CLAUDE.md` e `AGENTS.md`) com trigger automatico

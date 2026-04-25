@@ -1,5 +1,7 @@
 # Project Instructions
 
+This file is the Claude-oriented entrypoint for the same project rules mirrored in `AGENTS.md` for Codex-compatible workflows.
+
 ## Mission
 
 Build this project using Spec-Driven Development (SDD).

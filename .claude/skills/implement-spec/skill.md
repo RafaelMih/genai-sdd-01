@@ -23,7 +23,8 @@ Preferred first call:
 ```json
 {
   "feature": "<feature-name>",
-  "detail": "summary"
+  "detail": "summary",
+  "intent": "implement"
 }
 ```
 
@@ -47,8 +48,9 @@ Optional input when version is provided:
 ## Rules
 
 - ALWAYS call `retrieve_relevant_specs` first.
-- Prefer the `summary` detail mode first and expand to `full` only if the short context is insufficient.
+- Prefer the `summary` detail mode with `intent: "implement"` first and expand to `full` only if the short context is insufficient.
 - Treat `summary` as the default budget-safe mode and escalate to `full` only when required by a concrete missing detail.
+- Use `CONTEXT.md` as mandatory first context; do not load `TRACEABILITY-SUMMARY.md` for implementation unless the task becomes test or review oriented.
 - If `version` is provided, it MUST be passed to the tool.
 - ONLY use specs returned by RAG as source of truth.
 - Prefer `specs/features/<feature>/CONTEXT.md` plus targeted spec sections over loading full documents by default.
@@ -94,7 +96,7 @@ specs/features/<feature>/
 1. Call `retrieve_relevant_specs` with:
    - feature (required)
    - version (if provided)
-   - prefer `detail: "summary"` first
+   - prefer `detail: "summary"` and `intent: "implement"` first
 
 2. Identify the main feature spec from the returned documents.
 

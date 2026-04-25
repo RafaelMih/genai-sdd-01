@@ -46,17 +46,19 @@ async function generateSummary(feature: string): Promise<void> {
     .map(parseTableRow)
     .filter((row) => row.length >= 3);
 
+  const summaryHeader = [headerRow[0] ?? "AC", headerRow[2] ?? "Modulo(s)"];
+  const summaryRows = dataRows.map((row) => [row[0] ?? "", row[2] ?? ""]);
+
   const colWidth = [
-    Math.max(...[headerRow[0], ...dataRows.map((r) => r[0])].map((s) => s.length), 4),
-    Math.max(...[headerRow[1], ...dataRows.map((r) => r[1])].map((s) => s.length), 4),
-    Math.max(...[headerRow[2], ...dataRows.map((r) => r[2])].map((s) => s.length), 4),
+    Math.max(...[summaryHeader[0], ...summaryRows.map((row) => row[0])].map((s) => s.length), 4),
+    Math.max(...[summaryHeader[1], ...summaryRows.map((row) => row[1])].map((s) => s.length), 6),
   ];
 
   const pad = (s: string, n: number) => s.padEnd(n);
-  const header = `| ${pad(headerRow[0], colWidth[0])} | ${pad(headerRow[1], colWidth[1])} | ${pad(headerRow[2], colWidth[2])} |`;
-  const separator = `| ${"-".repeat(colWidth[0])} | ${"-".repeat(colWidth[1])} | ${"-".repeat(colWidth[2])} |`;
-  const rows = dataRows
-    .map((row) => `| ${pad(row[0], colWidth[0])} | ${pad(row[1], colWidth[1])} | ${pad(row[2], colWidth[2])} |`)
+  const header = `| ${pad(summaryHeader[0], colWidth[0])} | ${pad(summaryHeader[1], colWidth[1])} |`;
+  const separator = `| ${"-".repeat(colWidth[0])} | ${"-".repeat(colWidth[1])} |`;
+  const rows = summaryRows
+    .map((row) => `| ${pad(row[0], colWidth[0])} | ${pad(row[1], colWidth[1])} |`)
     .join("\n");
 
   const featureTitle = feature

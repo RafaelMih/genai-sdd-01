@@ -1,61 +1,45 @@
 # Context - pokemon-list
 
-Spec: specs/features/pokemon-list/spec-v1.0.0.md
+Spec: specs/features/pokemon-list/spec-v1.1.0.md
 
-This file is the canonical short context for AI-assisted work on this feature.
-It summarizes only the current active spec and should stay aligned with the latest approved version.
+Contexto canonico curto para trabalho assistido por IA.
+Use este arquivo antes de qualquer retrieval expandido.
 
 ## Objective
 
-Exibir uma lista de Pokémons no dashboard do usuário autenticado, consumindo a PokéAPI pública.
+Exibir uma lista de Pokemons no dashboard do usuario autenticado, consumindo a PokeAPI publica, com um filtro por nome aplicado apos 2 segundos desde a ultima edicao no input.
 
 ## Scope
 
-- Grade de cards de Pokémons na página do dashboard
-- Estado de carregamento durante a requisição
+- Grade de cards de Pokemons na pagina do dashboard
+- Estado de carregamento durante a requisicao
 - Estado de erro com mensagem em pt-BR
-- Consumo direto da PokéAPI pública sem autenticação
+- Consumo direto da PokeAPI publica sem autenticacao
+- Input para filtro por nome
+- Aplicacao do filtro local com debounce de 2 segundos
 
-## Out of scope
+## Active Acceptance Criteria
 
-- Paginação ou "carregar mais"
-- Busca ou filtro por nome/tipo
-- Detalhe individual de Pokémon
-- Cache local ou persistência no Firestore
-- Integração com Firebase (PokéAPI é pública e não requer servidor)
+- AC1: Quando o componente `PokemonList` monta no dashboard e a requisicao a PokeAPI conclui com sucesso, o componente exibe uma grade com cards de Pokemons
+- AC2: Quando a lista de Pokemons e renderizada com sucesso, cada card exibe o numero formatado como `#001`, o nome capitalizado com a primeira letra maiuscula...
+- AC3: Quando o componente `PokemonList` monta, ele chama a listagem da PokeAPI com `limit=20` e `offset=0` e carrega exatamente 20 Pokemons na resposta de suc...
+- AC4: Enquanto a requisicao inicial a PokeAPI esta em andamento, o componente exibe o texto "Carregando Pokemons..." e nao renderiza nenhum card
+- AC5: Quando a requisicao a PokeAPI falha, o componente exibe "Erro ao carregar Pokemons. Tente novamente." e nao renderiza nenhum card
+- AC6: Quando a requisicao inicial conclui com sucesso, o componente exibe um input para filtro por nome acima da grade de Pokemons
+- AC7: Quando o usuario edita o input de filtro e ainda nao se passaram 2 segundos desde a ultima edicao, o componente continua exibindo a lista visivel anteri...
+- AC8: Quando o filtro e aplicado com um valor nao vazio, o componente exibe apenas os Pokemons cujo nome contenha o valor digitado em qualquer posicao
+- AC9: Quando o filtro e aplicado com o input vazio, o componente volta a exibir a lista completa retornada pela PokeAPI
 
-## User flow
+## Contracts
 
-1. Usuário autenticado acessa `/dashboard`
-2. O componente `PokemonList` monta e inicia requisição à PokéAPI (`limit=20`, `offset=0`)
-3. Durante a requisição, exibe "Carregando Pokémons..."
-4. Quando a requisição retorna com sucesso, exibe a grade com 20 cards
-5. Cada card exibe: número formatado (`#001`), nome capitalizado e sprite frontal
-6. Se a requisição falhar (rede, timeout, erro HTTP), exibe "Erro ao carregar Pokémons. Tente novamente."
+- API contract: Endpoint:
+- UI state contract: See active spec.
+- Filter contract: - Campo: texto livre para filtro por nome
 
-## Acceptance criteria
+## Target Files
 
-- AC1: Quando o componente `PokemonList` monta no dashboard e a requisição à PokéAPI conclui com sucesso, o componente exibe uma grade com cards de Pokémons
-- AC2: Quando a lista de Pokémons é renderizada com sucesso, cada card exibe o número formatado como `#001`, o nome capitalizado com a primeira letra maiúscula e a imagem do sprite frontal
-- AC3: Quando o componente `PokemonList` monta, ele chama a listagem da PokéAPI com `limit=20` e `offset=0` e carrega exatamente 20 Pokémons na resposta de sucesso
-- AC4: Enquanto a requisição inicial à PokéAPI está em andamento, o componente exibe o texto "Carregando Pokémons..." e não renderiza nenhum card
-- AC5: Quando a requisição à PokéAPI falha, o componente exibe "Erro ao carregar Pokémons. Tente novamente." e não renderiza nenhum card
-
-## Dependencies
-
-- PokéAPI pública: `https://pokeapi.co/api/v2/`
-- Sem dependências de Firebase, ADR ou outros specs
-
-## Tests
-
-| Caso de teste                                          | Tipo        | ACs cobertos  |
-| ------------------------------------------------------ | ----------- | ------------- |
-| `parseIdFromUrl` extrai ID corretamente da URL         | Unit        | AC2, AC3      |
-| `buildSpriteUrl` constrói URL correta para ID          | Unit        | AC2           |
-| `formatPokemonNumber` formata com padding correto      | Unit        | AC2           |
-| `capitalizeName` capitaliza nome corretamente          | Unit        | AC2           |
-| `fetchPokemons` retorna lista com id, name, spriteUrl  | Unit        | AC3           |
-| `fetchPokemons` lança erro em falha de rede            | Unit        | AC5           |
-| Dashboard exibe "Carregando Pokémons..." durante fetch | Integration | AC4           |
-| Dashboard exibe grade de cards após fetch bem-sucedido | Integration | AC1, AC2, AC3 |
-| Dashboard exibe mensagem de erro após falha do fetch   | Integration | AC5           |
+- PokemonList.tsx
+- PokemonCard.tsx, pokemonService.ts
+- pokemonService.ts, usePokemonList.ts
+- PokemonList.tsx, usePokemonList.ts
+- PokemonList.tsx, pokemonService.ts

@@ -19,7 +19,7 @@ Transform acceptance criteria into test cases without inventing behavior.
 
 ## Procedure
 
-1. Read `CONTEXT.md` first, then open the active spec only for the sections needed to generate the tests safely.
+1. Read `CONTEXT.md` first, then use targeted retrieval with `intent: "test"` before opening larger spec sections.
 2. Extract every acceptance criterion.
 3. For each criterion:
    - identify expected user-visible behavior

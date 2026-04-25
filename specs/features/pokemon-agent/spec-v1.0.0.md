@@ -86,7 +86,7 @@ Sprite: https://...
 
 ## Dependencies
 
-- MCP server `pokemon` registrado em `.claude/settings.json`
+- MCP server `pokemon` registrado na configuracao de agentes do workspace (atualmente `.claude/settings.json`)
 - `mcp/pokemon-mcp.ts` expondo `list_pokemons` e `get_pokemon`
 
 ## Tests

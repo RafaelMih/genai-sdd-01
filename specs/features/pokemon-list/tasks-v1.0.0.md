@@ -5,7 +5,7 @@
 - [x] Criar traceability `specs/features/pokemon-list/TRACEABILITY.md`
 - [x] Atualizar `specs/.index/spec-manifest.json`
 - [x] Criar `mcp/pokemon-mcp.ts`
-- [x] Adicionar entrada `pokemon` em `.claude/settings.json`
+- [x] Adicionar entrada `pokemon` na configuracao de agentes do workspace (`.claude/settings.json`)
 - [x] Adicionar script `mcp:pokemon` em `package.json`
 - [x] Criar `src/features/pokemon-list/pokemonService.ts`
 - [x] Criar `src/features/pokemon-list/usePokemonList.ts`

@@ -3,26 +3,27 @@ import {
   buildSpriteUrl,
   capitalizeName,
   fetchPokemons,
+  filterPokemonsByName,
   formatPokemonNumber,
   parseIdFromUrl,
 } from "../pokemonService";
 
 describe("parseIdFromUrl", () => {
   // AC2, AC3
-  it("extrai o ID correto de uma URL de Pokémon", () => {
+  it("extrai o ID correto de uma URL de Pokemon", () => {
     expect(parseIdFromUrl("https://pokeapi.co/api/v2/pokemon/1/")).toBe(1);
     expect(parseIdFromUrl("https://pokeapi.co/api/v2/pokemon/25/")).toBe(25);
     expect(parseIdFromUrl("https://pokeapi.co/api/v2/pokemon/151/")).toBe(151);
   });
 
-  it("lança erro para URL inválida", () => {
+  it("lanca erro para URL invalida", () => {
     expect(() => parseIdFromUrl("https://pokeapi.co/api/v2/pokemon/bulbasaur")).toThrow();
   });
 });
 
 describe("buildSpriteUrl", () => {
   // AC2
-  it("constrói URL de sprite correta para o ID", () => {
+  it("constroi URL de sprite correta para o ID", () => {
     expect(buildSpriteUrl(1)).toBe(
       "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png",
     );
@@ -34,7 +35,7 @@ describe("buildSpriteUrl", () => {
 
 describe("formatPokemonNumber", () => {
   // AC2
-  it("formata número com padding de 3 dígitos", () => {
+  it("formata numero com padding de 3 digitos", () => {
     expect(formatPokemonNumber(1)).toBe("#001");
     expect(formatPokemonNumber(25)).toBe("#025");
     expect(formatPokemonNumber(151)).toBe("#151");
@@ -57,7 +58,7 @@ describe("fetchPokemons", () => {
   });
 
   // AC3
-  it("retorna lista com id, name e spriteUrl para cada Pokémon", async () => {
+  it("retorna lista com id, name e spriteUrl para cada Pokemon", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -87,16 +88,36 @@ describe("fetchPokemons", () => {
   });
 
   // AC5
-  it("lança erro em falha de rede (fetch rejeita)", async () => {
+  it("lanca erro em falha de rede (fetch rejeita)", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network error")));
 
     await expect(fetchPokemons()).rejects.toThrow();
   });
 
   // AC5
-  it("lança erro quando API retorna status não-ok", async () => {
+  it("lanca erro quando API retorna status nao-ok", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500 }));
 
     await expect(fetchPokemons()).rejects.toThrow("Erro 500");
+  });
+});
+
+describe("filterPokemonsByName", () => {
+  const pokemons = [
+    { id: 1, name: "bulbasaur", spriteUrl: "sprite-1" },
+    { id: 2, name: "ivysaur", spriteUrl: "sprite-2" },
+    { id: 3, name: "pikachu", spriteUrl: "sprite-3" },
+  ];
+
+  // AC8
+  it("retorna apenas nomes que contem o valor digitado", () => {
+    expect(filterPokemonsByName(pokemons, "saur")).toEqual([pokemons[0], pokemons[1]]);
+    expect(filterPokemonsByName(pokemons, "ka")).toEqual([pokemons[2]]);
+  });
+
+  // AC9
+  it("retorna a lista completa quando a consulta e vazia", () => {
+    expect(filterPokemonsByName(pokemons, "")).toEqual(pokemons);
+    expect(filterPokemonsByName(pokemons, "   ")).toEqual(pokemons);
   });
 });

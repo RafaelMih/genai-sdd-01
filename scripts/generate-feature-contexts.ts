@@ -46,7 +46,6 @@ function getSections(markdown: string): Map<string, string> {
     }
 
     if (/^#\s+/.test(line)) continue;
-
     buffer.push(line);
   }
 
@@ -55,34 +54,113 @@ function getSections(markdown: string): Map<string, string> {
   return sections;
 }
 
-function buildContextMarkdown(
-  feature: string,
-  specFileName: string,
+function extractAcceptanceCriteria(content: string): string[] {
+  return normalizeWhitespace(content)
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => /^- AC\d+:/i.test(line))
+    .map((line) => line.replace(/^- /, ""))
+    .map((line) => (line.length > 160 ? `${line.slice(0, 157)}...` : line));
+}
+
+function extractContractSections(
   sections: Map<string, string>,
-): string {
-  const preferredOrder = [
-    "Objective",
-    "Scope",
-    "Out of scope",
-    "User flow",
-    "Acceptance criteria",
-    "Dependencies",
-    "Tests",
+): Array<{ heading: string; body: string }> {
+  const headings = [...sections.keys()].filter((heading) => /contract/i.test(heading));
+
+  return headings.slice(0, 4).map((heading) => ({
+    heading,
+    body: sections.get(heading)?.trim() ?? "",
+  }));
+}
+
+function extractTargetFiles(traceabilitySummary: string | null): string[] {
+  if (!traceabilitySummary) return [];
+
+  const lines = normalizeWhitespace(traceabilitySummary)
+    .split("\n")
+    .filter((line) => line.trim().startsWith("|"));
+
+  if (lines.length < 3) return [];
+
+  const files = new Set<string>();
+
+  for (const line of lines.slice(2)) {
+    const cells = line
+      .split("|")
+      .slice(1, -1)
+      .map((cell) => cell.trim());
+    const moduleCell = cells[1];
+
+    if (!moduleCell) continue;
+
+    for (const rawFile of moduleCell.split("+")) {
+      const cleaned = rawFile.replace(/`/g, "").trim();
+      if (cleaned) files.add(cleaned);
+    }
+  }
+
+  return [...files].slice(0, 8);
+}
+
+function buildList(items: string[]): string {
+  return items.map((item) => `- ${item}`).join("\n");
+}
+
+function buildContextMarkdown(input: {
+  feature: string;
+  specFileName: string;
+  sections: Map<string, string>;
+  traceabilitySummary: string | null;
+}): string {
+  const objective = input.sections.get("Objective")?.trim() ?? "Nao definido.";
+  const scope = input.sections.get("Scope")?.trim() ?? "Nao definido.";
+  const acceptanceCriteria = extractAcceptanceCriteria(
+    input.sections.get("Acceptance criteria") ?? "",
+  );
+  const contracts = extractContractSections(input.sections);
+  const targetFiles = extractTargetFiles(input.traceabilitySummary);
+
+  const parts = [
+    `# Context - ${input.feature}`,
+    "",
+    `Spec: specs/features/${input.feature}/${input.specFileName}`,
+    "",
+    "Contexto canonico curto para trabalho assistido por IA.",
+    "Use este arquivo antes de qualquer retrieval expandido.",
+    "",
+    "## Objective",
+    "",
+    objective,
+    "",
+    "## Scope",
+    "",
+    scope,
+    "",
+    "## Active Acceptance Criteria",
+    "",
+    acceptanceCriteria.length > 0 ? buildList(acceptanceCriteria) : "- Nenhum AC encontrado.",
   ];
 
-  const summarySections = preferredOrder
-    .filter((heading) => sections.has(heading))
-    .map((heading) => `## ${heading}\n\n${sections.get(heading)?.trim() ?? ""}`);
+  if (contracts.length > 0) {
+    parts.push("", "## Contracts", "");
+    for (const contract of contracts) {
+      const firstLine =
+        contract.body
+          .split("\n")
+          .map((line) => line.trim())
+          .find((line) => line.length > 0 && !line.startsWith("|")) ?? "See active spec.";
+      parts.push(`- ${contract.heading}: ${firstLine}`);
+    }
+  }
 
-  return `# Context - ${feature}
+  if (targetFiles.length > 0) {
+    parts.push("", "## Target Files", "", buildList(targetFiles));
+  }
 
-Spec: specs/features/${feature}/${specFileName}
+  parts.push("");
 
-This file is the canonical short context for AI-assisted work on this feature.
-It summarizes only the current active spec and should stay aligned with the latest approved version.
-
-${summarySections.join("\n\n")}
-`;
+  return parts.join("\n");
 }
 
 async function findLatestSpec(
@@ -118,7 +196,16 @@ async function main(): Promise<void> {
     const specPath = path.join(featureDir, latestSpec.fileName);
     const specContent = await readFile(specPath, "utf8");
     const sections = getSections(specContent);
-    const contextContent = buildContextMarkdown(feature, latestSpec.fileName, sections);
+    const traceabilitySummary = await readFile(
+      path.join(featureDir, "TRACEABILITY-SUMMARY.md"),
+      "utf8",
+    ).catch(() => null);
+    const contextContent = buildContextMarkdown({
+      feature,
+      specFileName: latestSpec.fileName,
+      sections,
+      traceabilitySummary,
+    });
 
     await mkdir(featureDir, { recursive: true });
     await writeFile(path.join(featureDir, "CONTEXT.md"), contextContent, "utf8");

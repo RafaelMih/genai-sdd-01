@@ -10,7 +10,7 @@ export type Pokemon = {
 
 export function parseIdFromUrl(url: string): number {
   const match = url.match(/\/(\d+)\/$/);
-  if (!match) throw new Error(`URL inválida: ${url}`);
+  if (!match) throw new Error(`URL invalida: ${url}`);
   return parseInt(match[1], 10);
 }
 
@@ -24,6 +24,16 @@ export function formatPokemonNumber(id: number): string {
 
 export function capitalizeName(name: string): string {
   return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+export function filterPokemonsByName(pokemons: Pokemon[], query: string): Pokemon[] {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return pokemons;
+  }
+
+  return pokemons.filter((pokemon) => pokemon.name.toLowerCase().includes(normalizedQuery));
 }
 
 export async function fetchPokemons(): Promise<Pokemon[]> {
